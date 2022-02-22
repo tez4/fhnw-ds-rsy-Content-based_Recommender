@@ -1,0 +1,51 @@
+---
+title: "Content-based Recommender"
+author: "Pascal Berger, Lea Bütler & Joël Grosjean"
+output:
+  html_notebook: default
+  pdf_document: default
+---
+R-Version: **[Default] [32-bit] C:\\Program Files\\R\\R-4.1.0**
+
+In folgendem Notebook werden anhand des `MovieLense` Datensatzes aus dem Paket RecommenderLab verschiedene Recommender erstellt. Es werden verschiedene Recommender und verschiedene Ähnlichkeiten verwendet, um diese zu vergleichen und auszuwerten. Ziel ist es, ein möglichst guter Recommender zu erstellen und zu verstehen wie dieser funktioniert. Zudem soll verstanden werden wie dieser bewertet wird und was in diesem Falle ein 'guter' Recommender bedeutet.
+
+Dieses Notebook konzentriert sich auf Erkenntnisse von Auswertungen und Vergleichen. Um eine bessere Übersicht zu erhalten wurden grosse, sich widerholende Codes im Helperfile `helper.R` ausgelagert.
+
+```{r echo=FALSE, cache=FALSE, results=FALSE, comment=FALSE, warning=FALSE}
+# nötige Packete
+packages <- c("tidyverse", "data.table", "lubridate", "ggplot2", "ggthemes", "recommenderlab", "knitr", 'pals', 'RColorBrewer', 'lattice', 'grid', 'gridExtra')
+
+# Noch nicht installierte Pakete installieren
+installed_packages <- packages %in% rownames(installed.packages())
+
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+# Laden der Packete
+invisible(lapply(packages, library, character.only = TRUE))
+
+# Importieren von Funktionene aus helper file
+source("helper.R")
+
+# change options
+options(dplyr.summarise.inform = FALSE)
+
+# --------------------------- data wrangling -------------------------------------
+# Daten importieren
+data(MovieLense)
+
+# dataframe erstellen
+movies <- as(MovieLense, "data.frame")
+movies <- movies %>% mutate_if(is.character, as.factor)
+
+# breite version des dataframe erstellen
+movies_wider <- pivot_wider(
+  movies,
+  id_cols = user,
+  names_from = item,
+  values_from = rating,
+  values_fill = NULL,
+)
+```
+
