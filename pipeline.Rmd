@@ -40,12 +40,19 @@ movies <- as(MovieLense, "data.frame")
 movies <- movies %>% mutate_if(is.character, as.factor)
 
 # breite version des dataframe erstellen
-movies_wider <- pivot_wider(
-  movies,
-  id_cols = user,
-  names_from = item,
-  values_from = rating,
-  values_fill = NULL,
-)
+# movies_wider <- pivot_wider(
+#   movies,
+#   id_cols = user,
+#   names_from = item,
+#   values_from = rating,
+#   values_fill = NULL,
+# )
+```
+
+## Binäre User-Liked-Items Matrix für alle Nutzer erzeugen
+```{r}
+movies_binary <- movies %>% mutate(rating = ifelse(rating > 3, 1, 0))
+movies_wider <- pivot_wider(movies_binary, id_cols = user, names_from = item, values_from = rating)
+matrix <- as.matrix(movies_wider)
 ```
 
