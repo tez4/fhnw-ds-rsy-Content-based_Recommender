@@ -56,3 +56,58 @@ movies_wider <- pivot_wider(movies_binary, id_cols = user, names_from = item, va
 matrix <- as.matrix(movies_wider)
 ```
 
+
+
+## Ähnlichkeit von Nutzern und Filmen
+
+### Test
+
+```{r}
+
+A_test.data <- c(1,2,0,2,1,0,1,2,1)
+A_test <- matrix(A_test.data, nrow=3)
+A_test
+
+B_test.data <- c(1,2,0,2,1,0,1,2,1)
+B_test <- matrix(B_test.data, nrow=3)
+B_test
+
+result <- calc_cos_similarity_twomtrx(A_test, B_test)
+
+if((dim(result) == dim(B_test)) && (dim(result) == dim(A_test))) {
+  print("dimensions match")
+} else {
+  print("dimensions do not match")
+}
+
+result
+
+```
+
+Wie in diesem Beispiel ersichtlich wird, ist die Matrix symmetrisch...
+
+
+```{r}
+
+similarity <- calc_cos_similarity_twomtrx(user_genre, movie_genre)
+
+```
+
+```{r}
+summary(similarity)
+```
+
+
+```{r}
+plot_sim(similarity, "cosine similarity matrix between user-genre and movie-genre")
+```
+
+
+```{r}
+selection <- similarity[c(241, 414, 477, 526, 640, 710), ]
+
+plot_sim(selection, "cosine similarity user-genre and movie-genre selection")
+
+```
+
+
