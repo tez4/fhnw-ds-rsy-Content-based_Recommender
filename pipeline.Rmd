@@ -91,6 +91,10 @@ class(movie_genre_matrix)
 user_movie_matrix[1:3, 1:3]
 ```
 
+```{r}
+user_movie_matrix 
+```
+
 
 ## 6.Anzahl unterschiedlicher Filmprofile bestimmen und visualisieren.
 ```{r}
@@ -138,16 +142,17 @@ nr_diff_movies_mean %>% mutate(genre = fct_reorder(genre, count)) %>%
 
 ## Ähnlichkeit von Nutzern und Filmen
 
-### Test
 ## 1.Cosinus-Ähnlichkeit zwischen User-Genre- und Movie-Genre-Matrix berechnen.
+
+### Test
 ```{r}
 
-A_test.data <- c(1,2,0,2,1,0,1,2,1)
-A_test <- matrix(A_test.data, nrow=3)
+A_test.data <- c(1.5,2.5, 1.,0.5)
+A_test <- matrix(A_test.data, nrow=2)
 A_test
 
-B_test.data <- c(1,2,0,2,1,0,1,2,1)
-B_test <- matrix(B_test.data, nrow=3)
+B_test.data <- c(0.5,1., 1.5,2.)
+B_test <- matrix(B_test.data, nrow=2)
 B_test
 
 result <- calc_cos_similarity_twomtrx(A_test, B_test)
@@ -157,17 +162,33 @@ if((dim(result) == dim(B_test)) && (dim(result) == dim(A_test))) {
 } else {
   print("dimensions do not match")
 }
+check.data <- c(0.79, 0.50, 0.87, 0.61)
+check <- matrix(check.data, nrow=2)
 
-result
+if(max(abs(check - result)) < 1e-2){
+  print("check match")
+} else{
+  print("check differs from result")
+}
+
 
 ```
 
-Wie in diesem Beispiel ersichtlich wird, ist die Matrix symmetrisch...
+In diesem Beispiel wurde für zwei 2x2 Matrizen mit zufällig gewählten Werten die cosine similarity berechnet. Diese Berechnung wurde ebenfalls von Hand gemacht und mit der Implementierung abgegelichen. Zusätzlich wurden die Dimensionen der Inputvariablen mit deren des Resultates abgeglichen. Die Berechnung der Cosine Similarity sollte so korrekt sein.
+
+
+Anschliessend wird die Cosine Similarity der user-genre und movie-genre Matrixberechnet.
+
+```{r}
+user_movie_non_na <- user_movie_matrix
+user_movie_non_na[is.na(user_movie_non_na)] <- 0
+user_movie_non_na[1:5, 1:5]
+```
 
 
 ```{r}
 
-similarity <- calc_cos_similarity_twomtrx(user_genre, movie_genre)
+similarity <- calc_cos_similarity_twomtrx(user_movie_non_na, t(movie_genre_matrix))
 
 ```
 
@@ -182,9 +203,15 @@ plot_sim(similarity, "cosine similarity matrix between user-genre and movie-genr
 
 
 ```{r}
-selection <- similarity[c(241, 414, 477, 526, 640, 710), ]
+selection <- as.data.frame(similarity)[c(241, 414, 477, 526, 640, 710), ]
+genres <- colnames(selection)
+selection$users <- rownames(selection)
+selection_long <- selection %>% pivot_longer(cols = genres)
 
-plot_sim(selection, "cosine similarity user-genre and movie-genre selection")
+ggplot(selection_long, aes(x=value, fill=users)) + geom_density(alpha=0.3) + 
+    labs(title="Density plot Cosinus-Ähnlichkeiten ausgewählte users", subtitle="", x="similarity")
+    
+#plot_sim(selection, "cosine similarity user-genre and movie-genre selection")
 
 ```
 
