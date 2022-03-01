@@ -53,6 +53,8 @@ movies <- movies %>% mutate_if(is.character, as.factor)
 ```{r}
 movies_binary <- movies %>% mutate(rating = ifelse(rating > 3, 1, 0))
 movies_wider <- pivot_wider(movies_binary, id_cols = user, names_from = item, values_from = rating)
+rownames(movies_wider) <- movies_wider$user
+movies_wider['user'] <- NULL
 user_movie_matrix <- as.matrix(movies_wider)
 movies_wider
 ```
@@ -67,6 +69,8 @@ dim(user_movie_matrix)
 ```{r}
 genres <- MovieLenseMeta
 genres <- genres %>% select("title",'unknown':'Western')
+rownames(genres) <- genres$title
+genres['title'] <- NULL
 movie_genre_matrix <- as.matrix(genres)
 genres
 ```
@@ -75,11 +79,14 @@ genres
 ```{r}
 dim(movie_genre_matrix)
 ```
+```{r}
+class(movie_genre_matrix)
+```
 
 
 ## Anzahl unterschiedlicher Filmprofile bestimmen und visualisieren
 ```{r}
-
+user_movie_matrix %*% movie_genre_matrix
 ```
 
 ## Ähnlichkeit von Nutzern und Filmen
