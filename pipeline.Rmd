@@ -53,11 +53,34 @@ movies <- movies %>% mutate_if(is.character, as.factor)
 ```{r}
 movies_binary <- movies %>% mutate(rating = ifelse(rating > 3, 1, 0))
 movies_wider <- pivot_wider(movies_binary, id_cols = user, names_from = item, values_from = rating)
-matrix <- as.matrix(movies_wider)
+user_movie_matrix <- as.matrix(movies_wider)
 movies_wider
 ```
 Für die Binäre User-Liked Matrix setzten wir die Grenze für ein gutes Rating bei >3. Also alle Filme, welche mit einem Rating von 3 oder weniger bewertet wurden, werden als schlecht bewertet definiert (also 0), wobei Filme mit Bewertungen von 4 oder 5 als gut bewertet definiert sind (1).
 
+## Dimension der User-Liked-Items Matrix prüfen und ausgeben
+```{r}
+dim(user_movie_matrix)
+```
+
+## Movie-Genre Matrix für alle Filme erzeugen
+```{r}
+genres <- MovieLenseMeta
+genres <- genres %>% select("title",'unknown':'Western')
+movie_genre_matrix <- as.matrix(genres)
+genres
+```
+
+## Dimension der Movie-Genre Matrix prüfen und ausgeben
+```{r}
+dim(movie_genre_matrix)
+```
+
+
+## Anzahl unterschiedlicher Filmprofile bestimmen und visualisieren
+```{r}
+
+```
 
 ## Ähnlichkeit von Nutzern und Filmen
 
