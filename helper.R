@@ -32,3 +32,26 @@ plot_sim <- function(A, title)
   #}
 }
 
+
+# ------------------- cleveland dot plot ---------------------------
+
+
+create_cleveland_plot <- function(df, subtitle) {
+  ggplot(df, aes(genres, count), height = 500, width = 7) +
+    scale_color_discrete(labels = c("bestbewertete Filme", "Top-N Empfehlungen")) +
+    coord_flip() +
+    geom_line() +
+    geom_point(aes(color = list)) +
+    theme_minimal() +
+    labs(
+      title = "Anteil Genres der bestbewerteten Filme im Vergleich zu \nden Top-N Empfehlungen der 20 Nutzer",
+      subtitle = subtitle,
+      x = element_blank(),
+      y = "Anteil in Prozent",
+      color = element_blank()
+    ) +
+    theme(
+      text = element_text(size = 12),
+      legend.position = 'bottom'
+    )
+}
