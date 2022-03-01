@@ -110,9 +110,6 @@ selection <- similarity[c(241, 414, 477, 526, 640, 710), ]
 plot_sim(selection, "cosine similarity user-genre and movie-genre selection")
 
 ```
-```{r}
-movies_wider
-```
 
 ### Empfehlbare Filme
 ## 1. Bewertete Filme maskieren, d.h. “Negativabzug” der User-Items Matrix erzeugen, um anschliessend Empfehlungen herzuleiten.
@@ -126,9 +123,10 @@ movies_masked
 ## 2. Zeilensumme des “Negativabzuges” der User-Items Matrix für die User “5”, “25”, “50” und “150” ausgeben.
 ```{r}
 defined_user <- c(5, 25, 50, 150)
+defined_user
 rowSums(movies_masked[defined_user, -1])
 ```
-
+Hier zu sehen sind die anzahl nicht bewerteter filme pro user
 
 ## 3. 5-Zahlen Statistik der Zeilensumme des “Negativabzuges” der User-Items Matrix bestimmen.
 ```{r}
@@ -137,38 +135,63 @@ summary(rowsums_masked)
 ```
 
 ## Top-N Empfehlungen
-## 1.Matrix für Bewertung aller Filme durch element-weise Multiplikation derMatrix der Cosinus-Ähnlichkeiten von Nutzern und Filmen und “Negativabzug” der User-Items Matrix erzeugen.
+## 1.Matrix für Bewertung aller Filme durch element-weise Multiplikation der Matrix der Cosinus-Ähnlichkeiten von Nutzern und Filmen und “Negativabzug” der User-Items Matrix erzeugen.
 ```{r}
-
+rating_matrix <- user_movie_matrix * movies_masked
 ```
 
 ## 2.Dimension der Matrix für die Bewertung aller Filme prüfen.
 ```{r}
-
+dim(rating_matrix)
 ```
 
 ## 3.Top-20 Listen pro Nutzer extrahieren.
 ```{r}
+get_topn_recos <- function(rating_matrix, n){
+  herdöpfel <- as(rating_matrix, 'realmatrixmatrix')
+  herdöpfel <- as(herdöpfel, 'data.frame')
+  herdöpfel <- arrange(desc(herdöpfel$ratings)) %>%
+    group_by(user) %>%
+    slice(head(n)) %>%
+    ungroup()
+  return(herdöpfel)
+}
 
+recommendation <- get_topn_recos(rating_matrix, 20)
+recommendation
 ```
 
 ## 4.Länge der Top-20 Listen pro Nutzer prüfen.
 ```{r}
-
+summary(recommendation)
 ```
 
 ##5.Verteilung der minimalen Ähnlichkeit für Top-N Listen für N = 10, 20, 50 und 100 für alle Nutzer visuell vergleichen.
 ```{r}
+analyze_topn_recos <- function(rating_matrix, list){
+  recoms <- c()
+  for (n in list) {
+    recoms <- append(recoms, get_topn_recos(rating_matrix, n))
+  }
+  return(recoms)
+}
 
+analyze_topn_recos(rating_matrix, c(10, 20, 50, 100))
 ```
+TODO: igewie visualisiere
 
 ##6.Top-20 Empfehlungen für Nutzer “5”, “25”, “50” und “150” visuell evaluieren.
 ```{r}
+defined_user_lists <- get_topn_recos(ratingmatrix, 20) %>%
+  filter(user == c(5, 25, 50, 50, 150)) %>%
+  ungroup()
 
+defined_user_lists
 ```
+TODO: clevelandplot
 
 ##7.Für Nutzer “133” und “555” Profil mit Top-N Empfehlungen für N = 20, 30, 40, 50 analysieren, visualisieren und diskutieren.
 ```{r}
-
+analyze_topn_recos(rating_matrix[c(133, 555),], c(20, 30, 40, 50))
 ```
-
+TODO: Clevelandplot + diskussion
