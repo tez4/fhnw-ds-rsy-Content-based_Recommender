@@ -56,7 +56,7 @@ movies_wider <- pivot_wider(movies_binary, id_cols = user, names_from = item, va
 matrix <- as.matrix(movies_wider)
 movies_wider
 ```
-Für die Binäre User-Liked Matrix setzten wir die Grenze für ein gutes Rating bei >3. Also alle Filme, welche mit einem Rating von 3 oder weniger bewertet wurden, werden als schlecht bewertet definiert (also 0), wobei Filme mit Bewertungen von 4 oder 5 als gut bewertet definiert sind (1).
+Für die Binäre User-Liked Matrix setzten wir die Grenze für ein gutes Rating bei >4. Also alle Filme, welche mit einem Rating von 3 oder weniger bewertet wurden, werden als schlecht bewertet definiert (also 0), wobei Filme mit Bewertungen von 4 oder 5 als gut bewertet definiert sind (1).
 
 
 ## Ähnlichkeit von Nutzern und Filmen
@@ -134,5 +134,41 @@ rowSums(movies_masked[defined_user, -1])
 ```{r}
 rowsums_masked <- rowSums(movies_masked[, -1])
 summary(rowsums_masked)
+```
+
+## Top-N Empfehlungen
+## 1.Matrix für Bewertung aller Filme durch element-weise Multiplikation derMatrix der Cosinus-Ähnlichkeiten von Nutzern und Filmen und “Negativabzug” der User-Items Matrix erzeugen.
+```{r}
+
+```
+
+## 2.Dimension der Matrix für die Bewertung aller Filme prüfen.
+```{r}
+
+```
+
+## 3.Top-20 Listen pro Nutzer extrahieren.
+```{r}
+
+```
+
+## 4.Länge der Top-20 Listen pro Nutzer prüfen.
+```{r}
+
+```
+
+##5.Verteilung der minimalen Ähnlichkeit für Top-N Listen für N = 10, 20, 50 und 100 für alle Nutzer visuell vergleichen.
+```{r}
+
+```
+
+##6.Top-20 Empfehlungen für Nutzer “5”, “25”, “50” und “150” visuell evaluieren.
+```{r}
+
+```
+
+##7.Für Nutzer “133” und “555” Profil mit Top-N Empfehlungen für N = 20, 30, 40, 50 analysieren, visualisieren und diskutieren.
+```{r}
+
 ```
 
