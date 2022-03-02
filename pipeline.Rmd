@@ -92,11 +92,34 @@ user_movie_matrix[1:3, 1:3]
 ```
 
 ```{r}
-user_movie_matrix 
+class(user_movie_matrix)
 ```
 
 
 ## 6.Anzahl unterschiedlicher Filmprofile bestimmen und visualisieren.
+```{r}
+movie_genre_profile_matrix <- as.matrix(apply(movie_genre_matrix == 1, 1, 
+                                       function(a) paste0(colnames(movie_genre_matrix)[a], collapse = "")))
+movie_genre_profile_df <- as.data.frame(movie_genre_profile_matrix)
+movie_genre_profile_df$items <- rownames(movie_genre_profile_df)
+
+#movie_genre_profile_list <- c(unique(movie_genre_profile_df$V1))
+#movie_genre_profile_list <- strsplit(movie_genre_profile_list, "\n")
+#length(movie_genre_profile_list)
+
+movie_genre_profile_df
+```
+TODO: igewie die einzelne genreprofil zelle, inen df speichere und plotte(grafik vode slides vom dani, glaub folie 13)
+
+In dem MovieLense Datenset sind insgesamt 216  verschiedene Genreprofile von den Filmen vertreten. Das bedeitet, es sind 216 verschiedene Genrekombinationen aus den 16 gegebenen Genres entstanden.
+(r isch so en seich plötzlich bruuchsch nömm 'as(data, 'data.frame)' sondern 'as.data.frame(data)' WIESO????)
+
+```{r}
+movie_genre_profile_df <- movie_genre_profile_df %>%
+  group_by(V1)
+movie_genre_profile_df
+```
+
 ```{r}
 nr_diff_movies <- binary_non_na %*% movie_genre_matrix
 nr_diff_movies <- as.data.frame(nr_diff_movies)
@@ -249,10 +272,15 @@ rating_matrix <- user_movie_matrix * movies_masked
 dim(rating_matrix)
 ```
 
+```{r}
+rating_matrix
+```
+
+
 ## 3.Top-20 Listen pro Nutzer extrahieren.
 ```{r}
 get_topn_recos <- function(rating_matrix, n){
-  herdöpfel <- as(rating_matrix, 'realmatrixmatrix')
+  herdöpfel <- as(rating_matrix, 'realRatingMatrix')
   herdöpfel <- as(herdöpfel, 'data.frame')
   herdöpfel <- arrange(desc(herdöpfel$ratings)) %>%
     group_by(user) %>%
