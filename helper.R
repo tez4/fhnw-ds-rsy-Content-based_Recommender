@@ -28,7 +28,7 @@ plot_sim <- function(A, title)
   #}
   #else
   #{
-  levelplot(A, xlab="items", ylab="items", main=title, col.regions=colorRampPalette(c("white", "black")))
+  levelplot(A, xlab="movies", ylab="users", main=title, col.regions=colorRampPalette(c("white", "black")))
   #}
 }
 
