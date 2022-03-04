@@ -1,9 +1,7 @@
 
-
-
-
-
-
+print_dim <- function(matrix) {
+  cat('Dimension: (',dim(matrix), ')')
+}
 
 # ------------------- Ähnlichkeit von Nutzern und Filmen ---------------------------
 

@@ -7,7 +7,7 @@ output:
 ---
 R-Version: **[Default] [32-bit] C:\\Program Files\\R\\R-4.1.0**
 
-# TODO: Einführungstext ändern
+TODO: Einführungstext ändern
 
 In folgendem Notebook werden anhand des `MovieLense` Datensatzes aus dem Paket RecommenderLab verschiedene Recommender erstellt. Es werden verschiedene Recommender und verschiedene Ähnlichkeiten verwendet, um diese zu vergleichen und auszuwerten. Ziel ist es, ein möglichst guter Recommender zu erstellen und zu verstehen wie dieser funktioniert. Zudem soll verstanden werden wie dieser bewertet wird und was in diesem Falle ein 'guter' Recommender bedeutet.
 
@@ -51,7 +51,7 @@ movies <- movies %>% mutate_if(is.character, as.factor)
 # )
 ```
 
-## 2.Binäre User-Liked-Items Matrix für alle Nutzer erzeugen.
+#### 2.Binäre User-Liked-Items Matrix für alle Nutzer erzeugen.
 ```{r warning=FALSE}
 movies_binary <- movies %>% mutate(rating = ifelse(rating > 3, 1, 0))
 movies_wider <- pivot_wider(movies_binary, id_cols = user, names_from = item, values_from = rating)
@@ -64,13 +64,13 @@ user_liked_item[1:3, 1:3]
 ```
 Für die Binäre User-Liked Matrix setzten wir die Grenze für ein gutes Rating bei >4. Also alle Filme, welche mit einem Rating von 3 oder weniger bewertet wurden, werden als schlecht bewertet definiert (also 0), wobei Filme mit Bewertungen von 4 oder 5 als gut bewertet definiert sind (1).
 
-## 3.Dimension der User-Liked-Items Matrix prüfen und ausgeben.
+#### 3.Dimension der User-Liked-Items Matrix prüfen und ausgeben.
 ```{r}
-dim(user_liked_item)
+print_dim(user_liked_item)
 ```
 Es sind 943 Users und 1664 bewertete Filme vorhanden. Dies entspricht der Dimension der Ursprungsdaten.
 
-## 4.Movie-Genre Matrix für alle Filme erzeugen.
+#### 4.Movie-Genre Matrix für alle Filme erzeugen.
 ```{r}
 genres <- MovieLenseMeta
 genres <- genres %>% select("title",'unknown':'Western')
@@ -80,16 +80,16 @@ movie_genre_matrix <- as.matrix(genres)
 movie_genre_matrix[1:4,1:3]
 ```
 
-## 5.Dimension der Movie-Genre Matrix prüfen und ausgeben.
+#### 5.Dimension der Movie-Genre Matrix prüfen und ausgeben.
 ```{r}
-dim(movie_genre_matrix)
+print_dim(movie_genre_matrix)
 ```
 In dieser Matrix sind die 1664 Filme einem oder mehreren von 19 genres zugeordnet.
 
-## 6.Anzahl unterschiedlicher Filmprofile bestimmen und visualisieren.
+#### 6.Anzahl unterschiedlicher Filmprofile bestimmen und visualisieren.
 
 ```{r}
-nr_diff_movies <- binary_non_na %*% movie_genre_matrix
+nr_diff_movies <- user_liked_item %*% movie_genre_matrix
 nr_diff_movies <- as.data.frame(nr_diff_movies)
 
 nr_diff_movies_mean <- rownames_to_column(nr_diff_movies)
@@ -172,42 +172,38 @@ ggplot(movie_genre_profile_df, aes(x = reorder(V1,count), y = count, fill = high
     legend.position = 'bottom'
   )
 ```
-In dem MovieLense Datenset sind insgesamt 216  verschiedene Genreprofile von den Filmen vertreten. Das bedeutet, es sind 216 verschiedene Genrekombinationen aus den 16 gegebenen Genres entstanden. Hier sehen wir also, dass die häufigste Kombination `Drama` alleine ist. Ganze 370 Filme wirden nur als Dramas kategorisiert.
+In dem MovieLense Datenset sind insgesamt 216  verschiedene Genreprofile von den Filmen vertreten. Das bedeutet, es sind 216 verschiedene Genrekombinationen aus den 16 gegebenen Genres entstanden. Hier sehen wir also, dass die häufigste Kombination `Drama` alleine ist. Ganze 370 Filme wurden nur als Dramas kategorisiert.
 
-## 7.User-Genre-Profil Matrix mit Nutzerprofilen im Genre-Vektorraum erzeugen.
+#### 7.User-Genre-Profil Matrix mit Nutzerprofilen im Genre-Vektorraum erzeugen.
 ```{r}
-user_genre_profil <- user_like_item %*% movie_genre_matrix
+user_genre_profil <- user_liked_item %*% movie_genre_matrix
 user_genre_profil[1:5,1:5]
-```
-```{r}
-dim(user_genre_profil)
 ```
 In dieser Matrix sind die Anzahl positiv bewerteter Filme pro Genre für jeden User dargestellt.
 
-## 8.Dimension der User-Genre-Profil Matrix prüfen und ausgeben.
+#### 8.Dimension der User-Genre-Profil Matrix prüfen und ausgeben.
 ```{r}
-dim(user_genre_profil)
+print_dim(user_genre_profil)
 ```
 Die Matrix hat für alle 943 Nutzer eine Angabe für die 19 verschiedenen Genres.
 
-## 9.Anzahl unterschiedlicher Nutzerprofile bestimmen, wenn Stärke der GenreKombination (a) vollständig bzw. (b) nur binär berücksichtigt wird.
+#### 9.Anzahl unterschiedlicher Nutzerprofile bestimmen, wenn Stärke der GenreKombination (a) vollständig bzw. (b) nur binär berücksichtigt wird.
 ```{r}
-user_genre_df <- as.data.frame(user_genre_matrix)
+user_genre_df <- as.data.frame(user_genre_profil)
 user_genre_diff <- user_genre_df %>% mutate(across(.cols = everything(), .fns = ~ifelse(.x > 0, 1, 0)))
 
-paste("Users: ", as.character(dim(user_genre_df)[1]))
-paste("vollständig identisch:", as.character(dim(user_genre_df)[1] - count(distinct(user_genre_df))))
-paste("binär identisch: ", as.character(dim(user_genre_df)[1] - count(distinct(user_genre_diff))))
+cat(paste("Users: ", as.character(dim(user_genre_df)[1])),
+    paste("vollständig identisch:", as.character(dim(user_genre_df)[1] - count(distinct(user_genre_df)))),
+    paste("binär identisch: ", as.character(dim(user_genre_df)[1] - count(distinct(user_genre_diff)))), sep = '\n')
 ```
 Es gibt bei Betrachtung vollständiger Nutzerprofilen keine identischen Nutzerprofile.
-Bei binärer Betrachtung sind jedoch fast 2/3 der Nutzerprofile identisch.
+Bei binärer Betrachtung sind hingegen fast 2/3 der Nutzerprofile identisch.
 
-
+***
 ## Ähnlichkeit von Nutzern und Filmen
+#### 1.Cosinus-Ähnlichkeit zwischen User-Genre- und Movie-Genre-Matrix berechnen.
 
-## 1.Cosinus-Ähnlichkeit zwischen User-Genre- und Movie-Genre-Matrix berechnen.
-
-### Test
+#### Test
 ```{r}
 
 A_test.data <- c(1.5,2.5, 1.,0.5)
@@ -248,7 +244,7 @@ dim(movie_genre_matrix)
 
 similarity <- calc_cos_similarity_twomtrx(user_genre_matrix, t(movie_genre_matrix))
 ```
-## 2. Dimension der Matrix der Cosinus Ähnlichkeiten von Nutzern und Filmen prüfen uns ausgeben.
+#### 2. Dimension der Matrix der Cosinus Ähnlichkeiten von Nutzern und Filmen prüfen uns ausgeben.
 
 ```{r}
 dim(similarity)
@@ -256,7 +252,7 @@ dim(similarity)
 
 Wie die Dimension schon erahnen lässt ist in dieser Matrix die Similarity zwischen Usern und Filmen abgebildet.
 
-## 3. 5 Zahlen Statistik für Matrix der Cosinus Ähnlichkeiten prüfen uns ausgeben.
+#### 3. 5 Zahlen Statistik für Matrix der Cosinus Ähnlichkeiten prüfen uns ausgeben.
 
 ```{r}
 summary(c(similarity))
@@ -271,7 +267,7 @@ which(is.na(similarity), arr.ind = T)[1]
 Wie hier gezeigt, ist dies der Nutzer 685.
 
 
-## 4. Cosinus Ähnlichkeiten von Nutzern und Filmen mit Dichteplot visualisieren.
+#### 4. Cosinus Ähnlichkeiten von Nutzern und Filmen mit Dichteplot visualisieren.
 
 ```{r}
 similarity_df <- as.data.frame(similarity)
@@ -293,7 +289,7 @@ plot_sim(similarity, "Cosinus similarity zwischen user-genre und movie-genre")
 Bei der Visualisierung aller similarities wird sichtbar, dass sich die Farbunterschiede eher hoizontal ausprägen. Dies bedeutet, dass der Einfluss von Nutzern, die generell besser oder generell schlechter bewerten höher ist als die similarities zwischen den Filmen.
 
 
-## 5. Cosinus Ähnlichkeiten von Nutzern und Filmen mit Dichteplot für Nutzer “241”, “414”, “477”, “526”, “640” und “710”
+#### 5. Cosinus Ähnlichkeiten von Nutzern und Filmen mit Dichteplot für Nutzer “241”, “414”, “477”, “526”, “640” und “710”
 
 ```{r}
 selection <- as.data.frame(similarity)[c(241, 414, 477, 526, 640, 710), ]
@@ -308,9 +304,9 @@ ggplot(selection_long, aes(x=value, fill=users)) + geom_density(alpha=0.3) +
 ```
 Hier wird nochmals sichtbar, dass das die similarities pro user sehr unterschiedlich sein können. Nummer 640 hat beispielsweise eine grössere similarity Ausprägung bei etwa 0.4. Häufig sind Buckel zu erkennen, was bedeutet dass Nutzer gewisse genres besser oder schlechter bewerten.
 
-
-### Empfehlbare Filme
-## 1. Bewertete Filme maskieren, d.h. “Negativabzug” der User-Items Matrix erzeugen, um anschliessend Empfehlungen herzuleiten.
+***
+## Empfehlbare Filme
+#### 1. Bewertete Filme maskieren, d.h. “Negativabzug” der User-Items Matrix erzeugen, um anschliessend Empfehlungen herzuleiten.
 ```{r}
 movies_masked <- movies_wider
 movies_masked[-1][movies_masked[-1] == 1] <- 0
@@ -318,7 +314,7 @@ movies_masked[is.na(movies_masked)] <- 1
 movies_masked
 ```
 
-## 2. Zeilensumme des “Negativabzuges” der User-Items Matrix für die User “5”, “25”, “50” und “150” ausgeben.
+#### 2. Zeilensumme des “Negativabzuges” der User-Items Matrix für die User “5”, “25”, “50” und “150” ausgeben.
 ```{r}
 defined_user <- c(5, 25, 50, 150)
 defined_user
@@ -326,19 +322,20 @@ rowSums(movies_masked[defined_user, -1])
 ```
 Hier zu sehen sind die anzahl nicht bewerteter filme pro user
 
-## 3. 5-Zahlen Statistik der Zeilensumme des “Negativabzuges” der User-Items Matrix bestimmen.
+#### 3. 5-Zahlen Statistik der Zeilensumme des “Negativabzuges” der User-Items Matrix bestimmen.
 ```{r}
 rowsums_masked <- rowSums(movies_masked[, -1])
 summary(rowsums_masked)
 ```
 
+***
 ## Top-N Empfehlungen
-## 1.Matrix für Bewertung aller Filme durch element-weise Multiplikation der Matrix der Cosinus-Ähnlichkeiten von Nutzern und Filmen und “Negativabzug” der User-Items Matrix erzeugen.
+#### 1.Matrix für Bewertung aller Filme durch element-weise Multiplikation der Matrix der Cosinus-Ähnlichkeiten von Nutzern und Filmen und “Negativabzug” der User-Items Matrix erzeugen.
 ```{r}
 rating_matrix <- user_movie_matrix * movies_masked
 ```
 
-## 2.Dimension der Matrix für die Bewertung aller Filme prüfen.
+#### 2.Dimension der Matrix für die Bewertung aller Filme prüfen.
 ```{r}
 dim(rating_matrix)
 ```
@@ -348,7 +345,7 @@ rating_matrix
 ```
 
 
-## 3.Top-20 Listen pro Nutzer extrahieren.
+#### 3.Top-20 Listen pro Nutzer extrahieren.
 ```{r}
 get_topn_recos <- function(rating_matrix, n){
   herdöpfel <- as(rating_matrix, 'realRatingMatrix')
@@ -364,12 +361,12 @@ recommendation <- get_topn_recos(rating_matrix, 20)
 recommendation
 ```
 
-## 4.Länge der Top-20 Listen pro Nutzer prüfen.
+#### 4.Länge der Top-20 Listen pro Nutzer prüfen.
 ```{r}
 summary(recommendation)
 ```
 
-##5.Verteilung der minimalen Ähnlichkeit für Top-N Listen für N = 10, 20, 50 und 100 für alle Nutzer visuell vergleichen.
+#### 5.Verteilung der minimalen Ähnlichkeit für Top-N Listen für N = 10, 20, 50 und 100 für alle Nutzer visuell vergleichen.
 ```{r}
 analyze_topn_recos <- function(rating_matrix, list){
   recoms <- c()
@@ -383,7 +380,7 @@ analyze_topn_recos(rating_matrix, c(10, 20, 50, 100))
 ```
 TODO: igewie visualisiere
 
-##6.Top-20 Empfehlungen für Nutzer “5”, “25”, “50” und “150” visuell evaluieren.
+#### 6.Top-20 Empfehlungen für Nutzer “5”, “25”, “50” und “150” visuell evaluieren.
 ```{r}
 defined_user_lists <- get_topn_recos(ratingmatrix, 20) %>%
   filter(user == c(5, 25, 50, 50, 150)) %>%
@@ -393,7 +390,7 @@ defined_user_lists
 ```
 TODO: clevelandplot
 
-##7.Für Nutzer “133” und “555” Profil mit Top-N Empfehlungen für N = 20, 30, 40, 50 analysieren, visualisieren und diskutieren.
+#### 7.Für Nutzer “133” und “555” Profil mit Top-N Empfehlungen für N = 20, 30, 40, 50 analysieren, visualisieren und diskutieren.
 ```{r}
 analyze_topn_recos(rating_matrix[c(133, 555),], c(20, 30, 40, 50))
 ```
