@@ -232,7 +232,6 @@ if(max(abs(check - result)) < 1e-2){
 
 
 ```
-
 In diesem Beispiel wurde für zwei 2x2 Matrizen mit zufällig gewählten Werten die cosine similarity berechnet. Diese Berechnung wurde ebenfalls von Hand gemacht und mit der Implementierung abgegelichen. Zusätzlich wurden die Dimensionen der Inputmatrizen mit der resultierenden Matrix abgeglichen. Die Berechnung der Cosine Similarity ist somit korrekt.
 
 
