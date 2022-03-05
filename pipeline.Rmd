@@ -301,25 +301,34 @@ Hier wird nochmals sichtbar, dass das die similarities pro user sehr unterschied
 ## Empfehlbare Filme
 #### 1. Bewertete Filme maskieren, d.h. “Negativabzug” der User-Items Matrix erzeugen, um anschliessend Empfehlungen herzuleiten.
 ```{r}
-movies_masked <- movies_wider
-movies_masked[-1][movies_masked[-1] == 1] <- 0
+movie_lense <- as(MovieLense,'matrix')
+
+movies_masked <- as(MovieLense, "matrix")
+movies_masked[!is.na(movies_masked)] <- 0
 movies_masked[is.na(movies_masked)] <- 1
-movies_masked
+
+movie_lense[1:3,1:3]
+movies_masked[1:3,1:3]
 ```
+Hier sieht man, dass bei der neuen Matrix die nicht bewerteten Filme zu einer eins wurden und die bewerteten zu einer null.
 
 #### 2. Zeilensumme des “Negativabzuges” der User-Items Matrix für die User “5”, “25”, “50” und “150” ausgeben.
 ```{r}
 defined_user <- c(5, 25, 50, 150)
-defined_user
-rowSums(movies_masked[defined_user, -1])
+cat(
+  for (i in defined_user) {
+    cat('User',i,':', sum(movies_masked[i,]), 'Filme\n')
+  }
+)
 ```
-Hier zu sehen sind die anzahl nicht bewerteter filme pro user
+Hier zu sehen sind die Anzahl nicht bewerteter Filme pro User. In anderen Worten sind dies also die empfehlbaren Filme. Von den 1664 Filmen haben die ausgewählten User nur einen kleinen Anteil gesehen.
 
 #### 3. 5-Zahlen Statistik der Zeilensumme des “Negativabzuges” der User-Items Matrix bestimmen.
 ```{r}
 rowsums_masked <- rowSums(movies_masked[, -1])
 summary(rowsums_masked)
 ```
+In dieser Statistik kann man sehen, dass der User den wenigsten nicht gesehenen Filme immernoch 928 der 1664 Filme nicht gesehen hat. Dies bedeutet für uns, dass wir maximal eine Top-928 Liste erstellen können. Der User mit den meisten nicht gesehenen Filmen hat 1645 der 1664 Filme nicht gesehen. Er hat also nur 19 Filme angeschaut. Ein durchschnittlicher Nutzer hat 1558 Filme nicht gesehen und somit 106 Filme gesehen.
 
 ***
 ## Top-N Empfehlungen
