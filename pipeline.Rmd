@@ -334,35 +334,31 @@ In dieser Statistik kann man sehen, dass der User den wenigsten nicht gesehenen 
 ## Top-N Empfehlungen
 #### 1.Matrix für Bewertung aller Filme durch element-weise Multiplikation der Matrix der Cosinus-Ähnlichkeiten von Nutzern und Filmen und “Negativabzug” der User-Items Matrix erzeugen.
 ```{r}
-rating_matrix <- user_movie_matrix * movies_masked
+rating_matrix <- similarity * movies_masked
+rating_matrix[1:3,1:3]
 ```
+In dieser Matrix sind die Cosinus-Ähnlichkeiten von Nutzern und Filmen zu sehen, wobei diese wenn der Film schon geschaut wurde Null ist.
 
 #### 2.Dimension der Matrix für die Bewertung aller Filme prüfen.
 ```{r}
-dim(rating_matrix)
+print_dim(rating_matrix)
 ```
-
-```{r}
-rating_matrix
-```
-
+Die Dimension dieser Matrix ist natürlich genauso wie die zwei multiplizierten Matrizen 943 User * 1664 Filme.
 
 #### 3.Top-20 Listen pro Nutzer extrahieren.
 ```{r}
-get_topn_recos <- function(rating_matrix, n){
-  herdöpfel <- as(rating_matrix, 'realRatingMatrix')
-  herdöpfel <- as(herdöpfel, 'data.frame')
-  herdöpfel <- arrange(desc(herdöpfel$ratings)) %>%
-    group_by(user) %>%
-    slice(head(n)) %>%
-    ungroup()
-  return(herdöpfel)
+get_topn_recos <- function(matrix, n, user_id = 'all') {
+  if (user_id == 'all') {
+    as(as(matrix,'realRatingMatrix'),'data.frame') %>% arrange(desc(rating)) %>% group_by(user) %>% slice_head(n = n) %>% ungroup()
+  }
+  else {
+   as(as(matrix,'realRatingMatrix'),'data.frame') %>% arrange(desc(rating)) %>% group_by(user) %>% slice_head(n = n) %>% ungroup() %>% filter(user == user_id) 
+  }
 }
 
 recommendation <- get_topn_recos(rating_matrix, 20)
-recommendation
+head(recommendation,3)
 ```
-
 #### 4.Länge der Top-20 Listen pro Nutzer prüfen.
 ```{r}
 summary(recommendation)
