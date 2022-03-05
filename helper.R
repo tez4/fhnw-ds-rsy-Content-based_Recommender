@@ -31,6 +31,25 @@ plot_sim <- function(A, title)
 }
 
 
+plot_similarity <- function(df, sub_title) {
+  ggplot(df) +
+    geom_density(aes(x = value), fill = 'steelblue') +
+    scale_y_continuous(expand = c(0,0)) +
+    scale_x_continuous(expand = c(0,0)) +
+    labs(
+      title = "Verteilung der Cosine-Similarity zwischen User und Filmen",
+      subtitle = sub_title,
+      x = "Cosine-Similarity", 
+      y = "Dichte",
+      fill = element_blank()
+    ) +
+    theme_classic() +
+    theme(
+      text = element_text(size = 12)
+    )
+}
+
+
 # ------------------- cleveland dot plot ---------------------------
 
 

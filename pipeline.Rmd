@@ -270,21 +270,7 @@ Wie hier gezeigt, ist dies der Nutzer 685.
 similarity_df <- as.data.frame(similarity)
 similarity_df <- pivot_longer(similarity_df, cols=colnames(similarity_df)) %>% na.omit(value)
 
-ggplot(similarity_df) +
-  geom_density(aes(x = value), fill = 'steelblue') +
-  scale_y_continuous(expand = c(0,0)) +
-  scale_x_continuous(expand = c(0,0)) +
-  labs(
-    title = "Verteilung der Cosine-Similarity zwischen User und Filmen",
-    subtitle = "Alle 943 User",
-    x = "Cosine-Similarity", 
-    y = "Dichte",
-    fill = element_blank()
-  ) +
-  theme_classic() +
-  theme(
-    text = element_text(size = 12)
-  )
+plot_similarity(similarity_df, "Alle 943 User")
 ```
 Es fällt auf, dass sehr hohe Ähnlichkeiten sehr selten vorkommen. Auch auffallend ist, dass es eine Spitze bei Ähnlichkeiten von 0 gibt, also Filme welche überhaubt nicht zu einem Nutzer passen und demnach eine Cosine-Similarity von 0 besitzen. Auf diesem Diagramm ist es nicht all zu deutlich zu sehen, dass all diese Werte tatsächlich 0 sind, doch genau dies ist bei genauerem Betrachten der Daten aufgefallen. Ansonsten sind die Ähnlichkeiten relativ gleichmässig verteilt. Wobei am meisten Ähnlichkeiten ca. rund um 0.4 liegen.
 
@@ -294,17 +280,20 @@ plot_sim(similarity, "Cosinus similarity zwischen user-genre und movie-genre")
 Bei der Visualisierung aller similarities wird sichtbar, dass sich die Farbunterschiede eher hoizontal ausprägen. Dies bedeutet, dass der Einfluss von Nutzern, die generell besser oder generell schlechter bewerten höher ist als die similarities zwischen den Filmen.
 
 #### 5. Cosinus Ähnlichkeiten von Nutzern und Filmen mit Dichteplot für Nutzer “241”, “414”, “477”, “526”, “640” und “710”
-
-```{r}
+```{r fig.width = 12, fig.height = 12}
 selection <- as.data.frame(similarity)[c(241, 414, 477, 526, 640, 710), ]
-genres <- colnames(selection)
+movies <- colnames(selection)
 selection$users <- rownames(selection)
-selection_long <- selection %>% pivot_longer(cols = genres)
+selection_long <- selection %>% pivot_longer(cols = all_of(movies))
 
-ggplot(selection_long, aes(x=value, fill=users)) + geom_density(alpha=0.3) + 
-    labs(title="Dichteplot Cosinus-Ähnlichkeiten: Ausgewählte users", subtitle="", x="similarity")
-    
+p1 <- plot_similarity(selection_long %>% filter(users == 241), "User 241")
+p2 <- plot_similarity(selection_long %>% filter(users == 414), "User 414")
+p3 <- plot_similarity(selection_long %>% filter(users == 477), "User 477")
+p4 <- plot_similarity(selection_long %>% filter(users == 526), "User 526")
+p5 <- plot_similarity(selection_long %>% filter(users == 640), "User 640")
+p6 <- plot_similarity(selection_long %>% filter(users == 710), "User 710")
 
+grid.arrange(p1, p2, p3, p4, p5, p6, ncol = 2, nrow = 3)
 ```
 Hier wird nochmals sichtbar, dass das die similarities pro user sehr unterschiedlich sein können. Nummer 640 hat beispielsweise eine grössere similarity Ausprägung bei etwa 0.4. Häufig sind Buckel zu erkennen, was bedeutet dass Nutzer gewisse genres besser oder schlechter bewerten.
 
