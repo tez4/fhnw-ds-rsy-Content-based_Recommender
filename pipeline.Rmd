@@ -255,41 +255,43 @@ print_dim(similarity)
 Wie die Dimension schon erahnen lässt, ist in dieser Matrix die Similarity zwischen Usern und Filmen abgebildet. Die Matrix gibt also für alle 943 User eine Cosine Similarity mit jedem der 1664 Filme an.
 
 #### 3. 5 Zahlen Statistik für Matrix der Cosinus Ähnlichkeiten prüfen uns ausgeben.
-
 ```{r}
 summary(c(similarity))
 ```
-Die similarities liegen zwischen 0 und 1, was bei Betrachtung der ausschliesslich positiven Bewertung Sinn ergibt. Da das Minimum bei 0 liegt, gibt es user-item Kombinationen welche keine Ähnlichkeiten aufweisen. Das Maximum von 0.9768 bedeutet, dass es sehr hohe Ähnlichkeiten zwischen user- und movie Kombinationen gibt.
-Interessant ist, dass 1664 NA Werte bestehen. Dies hat zu bedeuten, dass es einen User gibt, welche alle movies negativ bewertet hat.
-
+Die similarities liegen zwischen 0 und 1, was bei Betrachtung der ausschliesslich positiven Bewertung Sinn ergibt. Da das Minimum bei 0 liegt, gibt es user-item Kombinationen welche keine Ähnlichkeiten aufweisen. Das Maximum von 0.9768 bedeutet, dass es sehr hohe Ähnlichkeiten zwischen User- und Film-Kombinationen gibt. Es gibt jedoch keine genau gleiche Kombination im gesamten Datensatz. Interessant ist, dass 1664 NA Werte bestehen. Dies hat zu bedeuten, dass es einen User gibt, welcher alle Filme negativ bewertet hat. Für diesen User können wir so keine Empfehlungen generieren. 
 
 ```{r}
-which(is.na(similarity), arr.ind = T)[1]
+cat(which(is.na(similarity), arr.ind = T)[1])
 ```
 Wie hier gezeigt, ist dies der Nutzer 685.
 
-
 #### 4. Cosinus Ähnlichkeiten von Nutzern und Filmen mit Dichteplot visualisieren.
-
 ```{r}
 similarity_df <- as.data.frame(similarity)
-similarity_df <- pivot_longer(similarity_df, cols=colnames(similarity_df))
-similarity_df
-```
+similarity_df <- pivot_longer(similarity_df, cols=colnames(similarity_df)) %>% na.omit(value)
 
-```{r}
 ggplot(similarity_df) +
-      geom_density(aes(x = value)) +
-      ggtitle("Dichteplot cosinus similarity zwischen user-genre und movies-genre") +
-      xlab("similarity")
+  geom_density(aes(x = value), fill = 'steelblue') +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_x_continuous(expand = c(0,0)) +
+  labs(
+    title = "Verteilung der Cosine-Similarity zwischen User und Filmen",
+    subtitle = "Alle 943 User",
+    x = "Cosine-Similarity", 
+    y = "Dichte",
+    fill = element_blank()
+  ) +
+  theme_classic() +
+  theme(
+    text = element_text(size = 12)
+  )
 ```
+Es fällt auf, dass sehr hohe Ähnlichkeiten sehr selten vorkommen. Auch auffallend ist, dass es eine Spitze bei Ähnlichkeiten von 0 gibt, also Filme welche überhaubt nicht zu einem Nutzer passen und demnach eine Cosine-Similarity von 0 besitzen. Auf diesem Diagramm ist es nicht all zu deutlich zu sehen, dass all diese Werte tatsächlich 0 sind, doch genau dies ist bei genauerem Betrachten der Daten aufgefallen. Ansonsten sind die Ähnlichkeiten relativ gleichmässig verteilt. Wobei am meisten Ähnlichkeiten ca. rund um 0.4 liegen.
 
-
-```{r}
+```{r fig.width = 7.5, fig.height = 10}
 plot_sim(similarity, "Cosinus similarity zwischen user-genre und movie-genre")
 ```
 Bei der Visualisierung aller similarities wird sichtbar, dass sich die Farbunterschiede eher hoizontal ausprägen. Dies bedeutet, dass der Einfluss von Nutzern, die generell besser oder generell schlechter bewerten höher ist als die similarities zwischen den Filmen.
-
 
 #### 5. Cosinus Ähnlichkeiten von Nutzern und Filmen mit Dichteplot für Nutzer “241”, “414”, “477”, “526”, “640” und “710”
 
