@@ -14,16 +14,7 @@ output:
     theme: united
     highlight: tango
     code_folding: hide
-    
 ---
-<!--   pdf_document: -->
-<!--     latex_engine: xelatex -->
-<!--     number_sections: true -->
-<!--     extra_dependencies: ["flafter"] -->
-<!-- header-includes: -->
-<!--   - \usepackage{fontspec} -->
-<!--   - \setmainfont{TeX Gyre Heros} -->
-
 R-Version: **[Default] [32-bit] C:\\Program Files\\R\\R-4.1.0**
 
 In diesem Notebook wird ein Content Based Recommender und anschliessend eine Off-line Evaluierung von Top-N Empfehlungen des generierten Recommender erstellt. Erneut wird aus dem Paket Recommenderlab der 'MovieLense' Datensatz verwendet.
@@ -49,13 +40,7 @@ if (any(installed_packages == FALSE)) {
 invisible(lapply(packages, library, character.only = TRUE))
 
 # Importieren von Funktionene aus helper file
-source("helper.R")
-
-# Import font
-# update.packages(ask = FALSE, checkBuilt = TRUE)
-# tinytex::install_tinytex()
-# tinytex::tlmgr_update()
-# tinytex::tlmgr_install("tex-gyre")
+source("helper.R", encoding="utf-8")
 
 # change options
 options(dplyr.summarise.inform = FALSE)
@@ -426,57 +411,10 @@ Auf dieser Grafik kann man sehen, dass mit der Anzahl Empfehlungen auch die mini
 
 #### 6. Top-20 Empfehlungen für Nutzer “5”, “25”, “50” und “150” visuell evaluieren.
 ```{r fig.width = 12, fig.height = 12}
-create_cleveland_plot_1 <- function(rating_matrix, genres, n, our_user) {
-  
-  recommendation <- get_topn_recos(rating_matrix, n)
-  recommendation <- recommendation %>% filter(user == our_user)
-  
-  genres_df <- cbind(item = rownames(genres),genres)
-  
-  # bring recommendations into the right form
-  recommendation <- inner_join(recommendation, genres_df, by = 'item')
-  recommendation <- pivot_longer(recommendation, cols = c('unknown': 'Western'), names_to = 'genre', values_to = 'genre_value')
-  recommendation <- recommendation %>% group_by(user, genre) %>% summarise(recommendation = sum(genre_value))
-  recommendation <- inner_join(recommendation, recommendation %>% group_by(user) %>% summarize(total = sum(recommendation)), by = 'user')
-  recommendation <- recommendation %>% mutate(recommendation = (recommendation / total) * 100)
-  
-  # bring the actually seen movies into the right form
-  movies <- as(MovieLense, "data.frame")
-  movies <- movies %>% filter(user == our_user)
-  movies <- inner_join(movies, genres_df, by = 'item')
-  movies <- pivot_longer(movies, cols = c('unknown': 'Western'), names_to = 'genre', values_to = 'genre_value')
-  movies <- movies %>% group_by(user, genre) %>% summarise(actual = sum(genre_value))
-  movies <- inner_join(movies, movies %>% group_by(user) %>% summarize(total = sum(actual)), by = 'user')
-  movies <- movies %>% mutate(actual = (actual / total) * 100)
-  
-  # join the two datasets
-  reco_df <- inner_join(movies, recommendation, by = c('user', 'genre'))
-  reco_df <- reco_df %>% mutate(act = actual)
-  reco_df <- pivot_longer(reco_df, cols = c('actual', 'recommendation'), names_to = 'type', values_to = 'value')
-  
-  reco_df <- reco_df %>% filter(user == our_user)
-  
-  ggplot(reco_df, aes(reorder(genre, act), value), height = 500, width = 7) +
-    scale_color_discrete(labels = c("bewertete Filme", "Top-20 Empfehlungen")) +
-    coord_flip() +
-    geom_line() +
-    geom_point(aes(color = type)) +
-    theme_minimal() +
-    labs(
-      title = glue('Top-{n} Empfehlungen für Nutzer {our_user}'),
-      x = element_blank(),
-      y = "Anteil in Prozent",
-      color = element_blank()
-    ) +
-    theme(
-      legend.position = 'bottom'
-    )
-}
-
-p1 <- create_cleveland_plot_1(rating_matrix, genres, 20, 5)
-p2 <- create_cleveland_plot_1(rating_matrix, genres, 20, 25)
-p3 <- create_cleveland_plot_1(rating_matrix, genres, 20, 50)
-p4 <- create_cleveland_plot_1(rating_matrix, genres, 20, 150)
+p1 <- create_cleveland_plot(rating_matrix, genres, 20, 5)
+p2 <- create_cleveland_plot(rating_matrix, genres, 20, 25)
+p3 <- create_cleveland_plot(rating_matrix, genres, 20, 50)
+p4 <- create_cleveland_plot(rating_matrix, genres, 20, 150)
 
 grid.arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
 ```
@@ -484,19 +422,21 @@ grid.arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
 #### 7. Für Nutzer “133” und “555” Profil mit Top-N Empfehlungen für N = 20, 30, 40, 50 analysieren, visualisieren und diskutieren.
 ```{r fig.width = 12, fig.height = 12}
 show_cleveland_grid <- function(user) {
-  p1 <- create_cleveland_plot_1(rating_matrix, genres, 20, user)
-  p2 <- create_cleveland_plot_1(rating_matrix, genres, 30, user)
-  p3 <- create_cleveland_plot_1(rating_matrix, genres, 40, user)
-  p4 <- create_cleveland_plot_1(rating_matrix, genres, 50, user)
+  p1 <- create_cleveland_plot(rating_matrix, genres, 20, user)
+  p2 <- create_cleveland_plot(rating_matrix, genres, 30, user)
+  p3 <- create_cleveland_plot(rating_matrix, genres, 40, user)
+  p4 <- create_cleveland_plot(rating_matrix, genres, 50, user)
   
   grid.arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
 }
 
 show_cleveland_grid(133)
 ```
+Für diesen Nutzer funktioniert der Recommender fast gar nicht. Er empfielt nur zwei verschiedene Genres: Drama und Comedy. Beide werden von diesem Nutzer sehr häufig geschaut. Jedoch kommt das zweithäuffigste Genre Thriller gar nicht vor. Dies macht die Vorschläge für diesen Nutzer ziemlich eintönig.
+
 ```{r fig.width = 12, fig.height = 12}
 show_cleveland_grid(555)
 ```
-
+Hier sieht man Unterschiede zwischen den verschiedenen Top-N Empfehlungen. Allgemein gibt es den Trend, dass die Genres, welche am meisten geschaut werden zu viel empfohlen werden und die kaum geschauten Genres gar nicht vorgeschlagen werden. 
 
 TODO: Clevelandplot + diskussion
