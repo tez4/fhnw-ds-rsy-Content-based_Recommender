@@ -294,7 +294,7 @@ similarity_df <- pivot_longer(similarity_df, cols=colnames(similarity_df)) %>% n
 
 plot_similarity(similarity_df, "Alle 943 User")
 ```
-Es fällt auf, dass sehr hohe Ähnlichkeiten sehr selten vorkommen. Ebenfalls auffällig ist, dass es eine Spitze bei Ähnlichkeiten von 0 gibt. Dieser Peak stellt also Filme welche überhaubt nicht zu einem Nutzer passen und demnach eine Cosine-Similarity von 0 besitzen dar. Auf diesem Diagramm ist es nicht sehr deutlich zu sehen, dass all diese Werte tatsächlich 0 sind, doch genau dies ist bei genauerem Betrachten der Daten aufgefallen. Ansonsten sind die Ähnlichkeiten relativ gleichmässig verteilt. Wobei am meisten Ähnlichkeiten um ca. 0.4 liegen.
+Es fällt auf, dass sehr hohe Ähnlichkeiten sehr selten vorkommen. Ebenfalls auffällig ist, dass es eine Spitze bei Ähnlichkeiten von 0 gibt. Dieser Peak stellt also Filme welche überhaubt nicht zu einem Nutzer passen und demnach eine Cosinus-Ähnlichkeit von 0 besitzen dar. Auf diesem Diagramm ist es nicht sehr deutlich zu sehen, dass all diese Werte tatsächlich 0 sind, doch genau dies ist bei genauerem Betrachten der Daten aufgefallen. Ansonsten sind die Ähnlichkeiten relativ gleichmässig verteilt. Wobei am meisten Ähnlichkeiten um ca. 0.4 liegen.
 
 ```{r fig.width = 7.5, fig.height = 10}
 plot_sim(similarity, "Cosinus similarity zwischen user-genre und movie-genre")
@@ -317,7 +317,7 @@ p6 <- plot_similarity(selection_long %>% filter(users == 710), "User 710")
 
 grid.arrange(p1, p2, p3, p4, p5, p6, ncol = 2, nrow = 3)
 ```
-Hier wird nochmals sichtbar, dass die Ähnlichkeiten pro user sehr unterschiedlich sein können. Nummer 640 hat beispielsweise eine grössere Ähnlichkeitsausprägung bei etwa 0.4. Häufig sind Buckel zu erkennen, was bedeutet dass Nutzer gewisse genres besser oder schlechter bewerten.
+Hier wird nochmals sichtbar, dass die Ähnlichkeiten pro User sehr unterschiedlich sein können. Nummer 640 hat beispielsweise eine grössere Ähnlichkeitsausprägung bei etwa 0.4. Häufig sind Buckel zu erkennen, was bedeutet dass Nutzer gewisse genres besser oder schlechter bewerten.
 
 ***
 ## Empfehlbare Filme
@@ -332,7 +332,7 @@ movies_masked[is.na(movies_masked)] <- 1
 movie_lense[1:3,1:3]
 movies_masked[1:3,1:3]
 ```
-In dieser Matrix wird en sogenannter negativabzug erstellt. Das bedeutet alle einträge welche eine Bewertung eines Users für einen Film darstellen werden zu einer '0', wobei alle NA werte, welche nicht bewertete Filme pro User darstellen, zu einer '1'.
+In dieser Matrix wird ein sogenannter Negativabzug erstellt. Das bedeutet alle Einträge welche eine Bewertung eines Users für einen Film darstellen, werden zu einer '0', wobei alle NA werte, welche nicht bewertete Filme pro User darstellen, zu einer '1' werden.
 
 #### 2. Zeilensumme des “Negativabzuges” der User-Items Matrix für die User “5”, “25”, “50” und “150” ausgeben.
 ```{r}
@@ -359,7 +359,7 @@ In dieser Statistik kann man sehen, dass der User welcher über am wenigsten nic
 rating_matrix <- similarity * movies_masked
 rating_matrix[1:3,1:3]
 ```
-In der hier generierten 'rating_matrix' sind die Cosinus-Ähnlichkeiten von Nutzern und Filmen zu sehen, wobei diese wenn der Film schon geschaut wurde gelich Null ist.
+In der hier generierten 'rating_matrix' sind die Cosinus-Ähnlichkeiten von Nutzern und Filmen zu sehen, wobei diese, wenn der Film schon geschaut wurde gelich Null ist.
 
 #### 2. Dimension der Matrix für die Bewertung aller Filme prüfen.
 ```{r}
