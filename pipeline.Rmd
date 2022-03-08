@@ -85,7 +85,7 @@ user_movie_matrix <- as.matrix(movies_wider)
 user_liked_item <- as(binarize(MovieLense, minRating = 4), 'matrix') * 1
 user_liked_item[1:3, 1:3]
 ```
-Für die Binäre User-Liked Matrix wurde die Grenze für ein gutes Rating bei >4 gesetzt. Also alle Filme, welche mit einem Rating von 3 oder weniger bewertet wurden, sind als schlecht bewertet definiert (also 0), wobei Filme mit Bewertungen von 4 oder 5 als gut bewertet definiert sind (1).
+In einem ersten Schritt wird aus den gegebenen Daten eine binäre User-Liked-Matrix erstellt. Die Grenze für ein gutes Rating wurde bei >3 gesetzt. Das bedeutet, dass alle Filme mit einem Rating von 3 oder weniger, als schlecht (also 0) eingestuft sind, wobei Filme mit Bewertungen von 4 oder 5 als gut eingestuft sind (1).
 
 #### 3. Dimension der User-Liked-Items Matrix prüfen und ausgeben.
 ```{r}
@@ -102,13 +102,13 @@ genres['title'] <- NULL
 movie_genre_matrix <- as.matrix(genres)
 movie_genre_matrix[1:4,1:3]
 ```
-Als nächster Schritt wurde eine 'movie_genre_matrix' erstellt, welche alle Filme mit den mit den dazugehörigen Genres aufgellistet sind. Zu erkennen ist, dass Filme mehreren Genres angehören können, und somit diverse neue Genreprofile mit verschiedenen Genrekombinationen vorhanden sind.
+Als nächster Schritt wurde eine 'movie_genre_matrix' erstellt, welche alle Filme mit den dazugehörigen Genres auflistet. Zu erkennen ist, dass Filme mehreren Genres angehören können, und somit diverse neue Genreprofile mit verschiedenen Genrekombinationen vorhanden sind.
 
 #### 5. Dimension der Movie-Genre Matrix prüfen und ausgeben.
 ```{r}
 print_dim(movie_genre_matrix)
 ```
-WIe bereits erwähnt sind in dieser Matrix alle 1664 Filme einem oder mehreren von 19 Genres zugeordnet.
+Wie bereits erwähnt sind in dieser Matrix alle 1664 Filme einem oder mehreren von 19 Genres zugeordnet.
 
 #### 6. Anzahl unterschiedlicher Filmprofile bestimmen und visualisieren.
 
@@ -140,7 +140,7 @@ nr_diff_movies_mean %>% mutate(genre = fct_reorder(genre, count)) %>%
     legend.position = 'bottom'
   )
 ```
-Hier sehen wir die allgemein am häufigsten positiv bewerteten Genres. Drama, Action und Comedy sind die beliebtesten Genres. Ein durchschnittlicher Nutzer hat also 25.78 Filme die mit Drama kategorisiert sind mit 4 oder 5 Sternen bewertet. Hier ist jedoch wichtig zu beachten, dass Genres oft in Kombination mit anderen Genres vorkommen, ein Film also mehreren Genres zugeteilt wurde.
+Hier sehen wir die allgemein am häufigsten positiv bewerteten Genres. Drama, Action und Comedy sind die beliebtesten Genres. Ein durchschnittlicher Nutzer hat also 25.78 Filme die mit Drama kategorisiert sind mit 4 oder 5 Sternen bewertet. Hier ist jedoch erneut zu beachten, dass Genres oft in Kombination mit anderen Genres vorkommen, ein Film also mehreren Genres zugeteilt ist.
 
 ```{r}
 movie_genre_profile_matrix <- as.matrix(
@@ -174,7 +174,7 @@ movie_genre_profile_df <-  movie_genre_profile_df %>%
   transform(count = as.numeric(count)) %>%
   mutate(highlight = ifelse(V1 == 'Andere', 'yes', 'no'))
 ```
-In diesem Dataframe ist das Genre-Profil jedes Filmes zusammengefasst. Toy Story zum Beispiel wird als Genre-Profil `Animation-Children's-Comedy` zusammengefasst, was soweit sinnvoll erscheint.
+In diesem Dataframe ist das Genre-Profil jedes Filmes zusammengefasst. Toy Story zum Beispiel wird als Genre-Profil `Animation-Children's-Comedy` zusammengefasst.
 
 ```{r fig.width = 7.5, fig.height = 6}
 ggplot(movie_genre_profile_df, aes(x = reorder(V1,count), y = count, fill = highlight)) + 
@@ -196,20 +196,20 @@ ggplot(movie_genre_profile_df, aes(x = reorder(V1,count), y = count, fill = high
     legend.position = 'bottom'
   )
 ```
-In dem MovieLense Datenset sind insgesamt 216  verschiedene Genreprofile von den 1664 Filmen vertreten. Das bedeutet, es sind 216 verschiedene Genrekombinationen aus den 16 gegebenen Genres entstanden. Hier sehen wir also, dass das häufigste profil `Drama` alleine ist. Ganze 370 Filme wurden nur als Dramas kategorisiert.
+In dem MovieLense Datenset sind insgesamt 216 verschiedene Genreprofile von den beinhalteten 1664 Filmen vertreten. Das bedeutet, es sind 216 verschiedene Genrekombinationen aus den 19 gegebenen 'reinen' Genres entstanden. Hier sehen wir also, dass das häufigste profil `Drama` alleine ist. Ganze 370 Filme wurden ausschliesslich als Drama kategorisiert.
 
 #### 7. User-Genre-Profil Matrix mit Nutzerprofilen im Genre-Vektorraum erzeugen.
 ```{r}
 user_genre_profil <- user_liked_item %*% movie_genre_matrix
 user_genre_profil[1:5,1:5]
 ```
-In dieser Matrix sind die Anzahl positiv bewerteter Filme pro Genre für jeden User dargestellt.
+Als nächstes wurde eine User-Genre-Profile Matrix erstelt. In dieser Matrix sind die Anzahl positiv bewerteter Filme pro Genre für jeden User dargestellt.
 
 #### 8. Dimension der User-Genre-Profil Matrix prüfen und ausgeben.
 ```{r}
 print_dim(user_genre_profil)
 ```
-Die Matrix hat für alle 943 Nutzer eine Angabe für die 19 verschiedenen Genres.
+Diese Matrix hat für alle 943 Nutzer eine Angabe für die 19 expliziten Genres.
 
 #### 9. Anzahl unterschiedlicher Nutzerprofile bestimmen, wenn Stärke der GenreKombination (a) vollständig bzw. (b) nur binär berücksichtigt wird.
 ```{r}
@@ -220,14 +220,15 @@ cat(paste("Users: ", as.character(dim(user_genre_df)[1])),
     paste("vollständig identisch:", as.character(dim(user_genre_df)[1] - count(distinct(user_genre_df)))),
     paste("binär identisch: ", as.character(dim(user_genre_df)[1] - count(distinct(user_genre_diff)))), sep = '\n')
 ```
-Es gibt bei Betrachtung vollständiger Nutzerprofilen keine identischen Nutzerprofile.
-Bei binärer Betrachtung sind hingegen fast 2/3 der Nutzerprofile identisch.
+Wenn die einzelnen Genreprofile vollständig betrachtet und miteinander verglichen werden , ist zu erkennen, dass keine Identischen Profile vorhanden sind.
+Werden die Profile allerdings nur binär berücksichtigt sind fast 2/3 der Nutzerprofile identisch.
 
 ***
 ## Ähnlichkeit von Nutzern und Filmen
 #### 1. Cosinus-Ähnlichkeit zwischen User-Genre- und Movie-Genre-Matrix berechnen.
+In folgendem Abschnitt wird eine Funktion gesschrieben, welche die Cisonus-Ähnlichkeit zweier Matrizen berechnen soll.
+Um zu überprüfen ob diese Funktion korrekte Werte ausgibt wird sie mit zwei 2x2 Matrizen getestet, welche mit zufälligen werten gefüllt wurde.
 ```{r}
-
 A_test.data <- c(1.5,2.5, 1.,0.5)
 A_test <- matrix(A_test.data, nrow=2)
 A_test
@@ -251,10 +252,8 @@ if(max(abs(check - result)) < 1e-2){
 } else{
   print("check differs from result")
 }
-
-
 ```
-In diesem Beispiel wurde für zwei 2x2 Matrizen mit zufällig gewählten Werten die cosine similarity berechnet. Diese Berechnung wurde ebenfalls von Hand gemacht und mit der Implementierung abgegelichen. Zusätzlich wurden die Dimensionen der Inputmatrizen mit der resultierenden Matrix abgeglichen. Die Berechnung der Cosine Similarity ist somit korrekt.
+Um zu überprüfen ob die Werte korrekt sind, wurde diese Berechnung von Hand gerechnet und mit der Implementierung abgegelichen. Zusätzlich wurden die Dimensionen der Inputmatrizen mit der resultierenden Matrix abgeglichen. Die Berechnung der Cosine Similarity ist somit korrekt.
 
 ```{r}
 cat(
@@ -264,9 +263,9 @@ cat(
 
 similarity <- calc_cos_similarity_twomtrx(user_genre_profil, movie_genre_matrix)
 ```
-Anschliessend wird die Cosine Similarity der user-genre und movie-genre Matrixberechnet. Für die Berechnung muss die zweite Matrix transponiert werden, damit für die Matrix Multiplikation die Anzahl Spalten der ersten Matrix der Anzahl Zeilen der zweiten übereinstimmt.
+Anschliessend wird die Cosine Similarity der user-genre und movie-genre Matrix berechnet. Für die Berechnung muss die zweite Matrix transponiert werden, damit für die Matrix Multiplikation die Anzahl Spalten der ersten Matrix der Anzahl Zeilen der zweiten übereinstimmt.
 
-#### 2. Dimension der Matrix der Cosinus Ähnlichkeiten von Nutzern und Filmen prüfen uns ausgeben.
+#### 2. Dimension der Matrix der Cosinus Ähnlichkeiten von Nutzern und Filmen prüfen und ausgeben.
 ```{r}
 similarity[1:3,1:3]
 ```
@@ -277,15 +276,16 @@ print_dim(similarity)
 Wie die Dimension schon erahnen lässt, ist in dieser Matrix die Similarity zwischen Usern und Filmen abgebildet. Die Matrix gibt also für alle 943 User eine Cosine Similarity mit jedem der 1664 Filme an.
 
 #### 3. 5 Zahlen Statistik für Matrix der Cosinus Ähnlichkeiten prüfen uns ausgeben.
+Die 5 Zahlen Statistik beinhaltet das Minimum, 1. Quartil, Median, 3. Quartil und das Maximum der zu analysierenden Daten. Zur vereinfachung verwendeten wir die R-Funktion 'summary()', welche diese 5 Kennzahlen inklusive arithmetischem Mittel und Anzahl NA's ausgibt:
 ```{r}
 summary(c(similarity))
 ```
-Die similarities liegen zwischen 0 und 1, was bei Betrachtung der ausschliesslich positiven Bewertung Sinn ergibt. Da das Minimum bei 0 liegt, gibt es user-item Kombinationen welche keine Ähnlichkeiten aufweisen. Das Maximum von 0.9768 bedeutet, dass es sehr hohe Ähnlichkeiten zwischen User- und Film-Kombinationen gibt. Es gibt jedoch keine genau gleiche Kombination im gesamten Datensatz. Interessant ist, dass 1664 NA Werte bestehen. Dies hat zu bedeuten, dass es einen User gibt, welcher alle Filme negativ bewertet hat. Für diesen User können wir so keine Empfehlungen generieren. 
+Die Ähnlichkeiten liegen zwischen 0 und 1, was bei Betrachtung der ausschliesslich positiven Bewertung sinnvoll erscheint. Da das Minimum bei 0 liegt, gibt es user-item Kombinationen welche keine Ähnlichkeiten aufweisen. Das Maximum von 0.9768 bedeutet, dass es sehr hohe Ähnlichkeiten zwischen User- und Film-Kombinationen gibt. Es gibt jedoch keine genau gleiche Kombination im gesamten Datensatz. Interessant ist, dass 1664 NA Werte bestehen. Dies hat zu bedeuten, dass es einen User gibt, welcher alle Filme negativ bewertet hat. Für diesen User können wir so keine Empfehlungen generieren. 
 
 ```{r}
 cat(which(is.na(similarity), arr.ind = T)[1])
 ```
-Wie hier gezeigt, ist dies der Nutzer 685.
+Wie hier angegeben, ist dies der Nutzer 685.
 
 #### 4. Cosinus Ähnlichkeiten von Nutzern und Filmen mit Dichteplot visualisieren.
 ```{r}
@@ -294,12 +294,12 @@ similarity_df <- pivot_longer(similarity_df, cols=colnames(similarity_df)) %>% n
 
 plot_similarity(similarity_df, "Alle 943 User")
 ```
-Es fällt auf, dass sehr hohe Ähnlichkeiten sehr selten vorkommen. Auch auffallend ist, dass es eine Spitze bei Ähnlichkeiten von 0 gibt, also Filme welche überhaubt nicht zu einem Nutzer passen und demnach eine Cosine-Similarity von 0 besitzen. Auf diesem Diagramm ist es nicht all zu deutlich zu sehen, dass all diese Werte tatsächlich 0 sind, doch genau dies ist bei genauerem Betrachten der Daten aufgefallen. Ansonsten sind die Ähnlichkeiten relativ gleichmässig verteilt. Wobei am meisten Ähnlichkeiten ca. rund um 0.4 liegen.
+Es fällt auf, dass sehr hohe Ähnlichkeiten sehr selten vorkommen. Ebenfalls auffällig ist, dass es eine Spitze bei Ähnlichkeiten von 0 gibt. Dieser Peak stellt also Filme welche überhaubt nicht zu einem Nutzer passen und demnach eine Cosine-Similarity von 0 besitzen dar. Auf diesem Diagramm ist es nicht sehr deutlich zu sehen, dass all diese Werte tatsächlich 0 sind, doch genau dies ist bei genauerem Betrachten der Daten aufgefallen. Ansonsten sind die Ähnlichkeiten relativ gleichmässig verteilt. Wobei am meisten Ähnlichkeiten um ca. 0.4 liegen.
 
 ```{r fig.width = 7.5, fig.height = 10}
 plot_sim(similarity, "Cosinus similarity zwischen user-genre und movie-genre")
 ```
-Bei der Visualisierung aller similarities wird sichtbar, dass sich die Farbunterschiede eher hoizontal ausprägen. Dies bedeutet, dass der Einfluss von Nutzern, die generell besser oder generell schlechter bewerten höher ist als die similarities zwischen den Filmen.
+Bei der Visualisierung aller Ähnlichketen wird sichtbar, dass sich die Farbunterschiede eher hoizontal ausprägen. Dies bedeutet, dass der Einfluss von Nutzern, die generell besser oder generell schlechter bewerten höher ist als die Ähnlichkeiten zwischen den Filmen.
 
 #### 5. Cosinus Ähnlichkeiten von Nutzern und Filmen mit Dichteplot für Nutzer “241”, “414”, “477”, “526”, “640” und “710”
 ```{r fig.width = 12, fig.height = 12}
@@ -317,7 +317,7 @@ p6 <- plot_similarity(selection_long %>% filter(users == 710), "User 710")
 
 grid.arrange(p1, p2, p3, p4, p5, p6, ncol = 2, nrow = 3)
 ```
-Hier wird nochmals sichtbar, dass das die similarities pro user sehr unterschiedlich sein können. Nummer 640 hat beispielsweise eine grössere similarity Ausprägung bei etwa 0.4. Häufig sind Buckel zu erkennen, was bedeutet dass Nutzer gewisse genres besser oder schlechter bewerten.
+Hier wird nochmals sichtbar, dass die Ähnlichkeiten pro user sehr unterschiedlich sein können. Nummer 640 hat beispielsweise eine grössere Ähnlichkeitsausprägung bei etwa 0.4. Häufig sind Buckel zu erkennen, was bedeutet dass Nutzer gewisse genres besser oder schlechter bewerten.
 
 ***
 ## Empfehlbare Filme
@@ -332,7 +332,7 @@ movies_masked[is.na(movies_masked)] <- 1
 movie_lense[1:3,1:3]
 movies_masked[1:3,1:3]
 ```
-Hier sieht man, dass bei der neuen Matrix die nicht bewerteten Filme zu einer eins wurden und die bewerteten zu einer null.
+In dieser Matrix wird en sogenannter negativabzug erstellt. Das bedeutet alle einträge welche eine Bewertung eines Users für einen Film darstellen werden zu einer '0', wobei alle NA werte, welche nicht bewertete Filme pro User darstellen, zu einer '1'.
 
 #### 2. Zeilensumme des “Negativabzuges” der User-Items Matrix für die User “5”, “25”, “50” und “150” ausgeben.
 ```{r}
@@ -350,7 +350,7 @@ Hier zu sehen sind die Anzahl nicht bewerteter Filme pro User. In anderen Worten
 rowsums_masked <- rowSums(movies_masked[, -1])
 summary(rowsums_masked)
 ```
-In dieser Statistik kann man sehen, dass der User den wenigsten nicht gesehenen Filme immernoch 928 der 1664 Filme nicht gesehen hat. Dies bedeutet für uns, dass wir maximal eine Top-928 Liste erstellen können. Der User mit den meisten nicht gesehenen Filmen hat 1645 der 1664 Filme nicht gesehen. Er hat also nur 19 Filme angeschaut. Ein durchschnittlicher Nutzer hat 1558 Filme nicht gesehen und somit 106 Filme gesehen.
+In dieser Statistik kann man sehen, dass der User welcher über am wenigsten nicht gesehener Filme verfügt immernoch 928 der 1664 Filme nicht gesehen hat. Dies bedeutet für uns, dass wir maximal eine Top-928 Liste erstellen können. Der User mit den meisten nicht gesehenen Filmen hat 1645 der 1664 Filme nicht gesehen. Er hat bis jetzt also nur 19 Filme angeschaut. Ein durchschnittlicher Nutzer hat 1558 Filme nicht gesehen und somit 106 Filme gesehen.
 
 ***
 ## Top-N Empfehlungen
@@ -359,13 +359,13 @@ In dieser Statistik kann man sehen, dass der User den wenigsten nicht gesehenen 
 rating_matrix <- similarity * movies_masked
 rating_matrix[1:3,1:3]
 ```
-In dieser Matrix sind die Cosinus-Ähnlichkeiten von Nutzern und Filmen zu sehen, wobei diese wenn der Film schon geschaut wurde Null ist.
+In der hier generierten 'rating_matrix' sind die Cosinus-Ähnlichkeiten von Nutzern und Filmen zu sehen, wobei diese wenn der Film schon geschaut wurde gelich Null ist.
 
 #### 2. Dimension der Matrix für die Bewertung aller Filme prüfen.
 ```{r}
 print_dim(rating_matrix)
 ```
-Die Dimension dieser Matrix ist natürlich genauso wie die zwei multiplizierten Matrizen 943 User * 1664 Filme.
+Die Dimension dieser Matrix ist natürlich genauso wie die zwei multiplizierten Matrizen: 943 User * 1664 Filme.
 
 #### 3. Top-20 Listen pro Nutzer extrahieren.
 ```{r}
@@ -382,14 +382,14 @@ recommendation <- get_topn_recos(rating_matrix, 20)
 recommendation <- recommendation %>% transform(user = as.numeric(user))
 head(recommendation,3)
 ```
-Hier haben wir eine Funktion geschrieben, welche die Top-N Empfehlungen für alle Users zurückgibt, solange keine User-ID angegeben wird. Sonst bekommt man die Empfehlungen nur für die als Liste angegebenen User.
+Hier gegeben ist eine Funktion, welche die Top-N Empfehlungen für alle User zurückgibt, solange keine User-ID angegeben wird. Ansonsten erhält man die Empfehlungen nur für die in einer Liste angegebenen User.
 
 #### 4. Länge der Top-20 Listen pro Nutzer prüfen.
 ```{r}
 reco_summary <- recommendation %>% group_by(user) %>% summarise(n = n())
 summary(reco_summary)
 ```
-Es fällt auf, dass es für alle User im Datensatz genau 20 Empfehlungen gibt. Bei genauerem betrachten fällt auf, dass es für 943 User 18'860 Empfehlungen geben müsste, es jedoch nur 18'840 Empfehlungen gibt. Dies liegt an dem User, welcher nur negative Bewertungen abgegeben hatte. Für diesen User gibt es momentan also einfach keine Empfehlungen. Man könnte dieses Problem natürlich verhindern indem man die Bewertungen dieses Users einfach anheben würde.
+Hier fällt auf, dass es für alle User im Datensatz genau 20 Empfehlungen gibt. Bei genauerem betrachten ist zu sehen, dass es für 943 User 18'860 Empfehlungen geben müsste, jedoch nur 18'840 vorhanden sind. Dies liegt an dem User, welcher nur negative Bewertungen abgegeben hatte. Für diesen User gibt es momentan also einfach keine Empfehlungen. Man könnte dieses Problem natürlich verhindern indem man die Bewertungen dieses Users einfach anheben würde.
 
 #### 5. Verteilung der minimalen Ähnlichkeit für Top-N Listen für N = 10, 20, 50 und 100 für alle Nutzer visuell vergleichen.
 ```{r fig.width = 7.5, fig.height = 12}
@@ -422,8 +422,7 @@ p4 <- plot_min_similarity(recommendation, 'Für Top-100 Recommendation')
 
 grid.arrange(p1, p2, p3, p4, ncol = 1, nrow = 4)
 ```
-Auf dieser Grafik kann man sehen, dass mit der Anzahl Empfehlungen auch die minimale Ähnlichkeit abnimmt. Bei einer Top-10 List ist die Tiefste Cosine-Similarity ca. 0.65. Bei einer Top-100 List hingegen, ist die minimale Cosine-Similarity unter 0.5.
-
+Auf dieser Grafik kann man sehen, dass mit der Anzahl Empfehlungen auch die minimale Ähnlichkeit abnimmt. Bei einer Top-10 Liste ist die tiefste Cosinus-Ähnlichkeit ca. 0.65. Bei einer Top-100 Liste hingegen, ist die minimale Cosinus-Ähnlichkeit unter 0.5.
 
 #### 6. Top-20 Empfehlungen für Nutzer “5”, “25”, “50” und “150” visuell evaluieren.
 ```{r}
