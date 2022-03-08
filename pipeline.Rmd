@@ -482,7 +482,21 @@ grid.arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
 ```
 
 #### 7. Für Nutzer “133” und “555” Profil mit Top-N Empfehlungen für N = 20, 30, 40, 50 analysieren, visualisieren und diskutieren.
-```{r}
-# analyze_topn_recos(rating_matrix[c(133, 555),], c(20, 30, 40, 50))
+```{r fig.width = 12, fig.height = 12}
+show_cleveland_grid <- function(user) {
+  p1 <- create_cleveland_plot_1(rating_matrix, genres, 20, user)
+  p2 <- create_cleveland_plot_1(rating_matrix, genres, 30, user)
+  p3 <- create_cleveland_plot_1(rating_matrix, genres, 40, user)
+  p4 <- create_cleveland_plot_1(rating_matrix, genres, 50, user)
+  
+  grid.arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
+}
+
+show_cleveland_grid(133)
 ```
+```{r fig.width = 12, fig.height = 12}
+show_cleveland_grid(555)
+```
+
+
 TODO: Clevelandplot + diskussion
