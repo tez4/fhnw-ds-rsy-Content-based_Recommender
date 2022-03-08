@@ -99,7 +99,7 @@ create_cleveland_plot <- function(rating_matrix, genres, n, our_user) {
   
   # bring the actually seen movies into the right form
   movies <- as(MovieLense, "data.frame")
-  movies <- movies %>% filter(user == our_user)
+  movies <- movies %>% filter(user == our_user, rating > 3)
   movies <- inner_join(movies, genres_df, by = 'item')
   movies <- pivot_longer(movies, cols = c('unknown': 'Western'), names_to = 'genre', values_to = 'genre_value')
   movies <- movies %>% group_by(user, genre) %>% summarise(actual = sum(genre_value))
@@ -114,7 +114,7 @@ create_cleveland_plot <- function(rating_matrix, genres, n, our_user) {
   reco_df <- reco_df %>% filter(user == our_user)
   
   ggplot(reco_df, aes(reorder(genre, act), value), height = 500, width = 7) +
-    scale_color_discrete(labels = c("bewertete Filme", "Top-20 Empfehlungen")) +
+    scale_color_discrete(labels = c("positiv bewertete Filme", "Top-20 Empfehlungen")) +
     coord_flip() +
     geom_line() +
     geom_point(aes(color = type)) +
