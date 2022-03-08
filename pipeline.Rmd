@@ -1,10 +1,29 @@
 ---
-title: "Content-based Recommender"
+title: "Recommender Systems"
+subtitle: "Mini-Challenge 2 - Content-based Recommender"
 author: "Pascal Berger, Lea Bütler & Joël Grosjean"
+date: "10. Juni 2022"
 output:
-  html_notebook: default
-  pdf_document: default
+  html_notebook:
+    toc: true
+    toc_depth: 4
+    df_print: paged
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+    theme: united
+    highlight: tango
+    code_folding: hide
+    
 ---
+<!--   pdf_document: -->
+<!--     latex_engine: xelatex -->
+<!--     number_sections: true -->
+<!--     extra_dependencies: ["flafter"] -->
+<!-- header-includes: -->
+<!--   - \usepackage{fontspec} -->
+<!--   - \setmainfont{TeX Gyre Heros} -->
+
 R-Version: **[Default] [32-bit] C:\\Program Files\\R\\R-4.1.0**
 
 In diesem Notebook wird ein Content Based Recommender und anschliessend eine Off-line Evaluierung von Top-N Empfehlungen des generierten Recommender erstellt. Erneut wird aus dem Paket Recommenderlab der 'MovieLense' Datensatz verwendet.
@@ -13,8 +32,11 @@ Für die Erstellung des Recommenders wird hier die Cosine Similarity angewandt.
 Grosse Funktionen werden in einem 'helper.R' file ausgelagert.
 
 ```{r echo=FALSE, cache=FALSE, results=FALSE, comment=FALSE, warning=FALSE}
+# clear environment
+rm(list = ls())
+
 # nötige Packete
-packages <- c("tidyverse", "data.table", "lubridate", "ggplot2", "ggthemes", "recommenderlab", "knitr", 'pals', 'RColorBrewer', 'lattice', 'grid', 'gridExtra')
+packages <- c("tidyverse", "data.table", "lubridate", "ggplot2", "ggthemes", "recommenderlab", "knitr", 'pals', 'RColorBrewer', 'lattice', 'grid', 'gridExtra', 'tinytex')
 
 # Noch nicht installierte Pakete installieren
 installed_packages <- packages %in% rownames(installed.packages())
@@ -29,28 +51,30 @@ invisible(lapply(packages, library, character.only = TRUE))
 # Importieren von Funktionene aus helper file
 source("helper.R")
 
+# Import font
+# update.packages(ask = FALSE, checkBuilt = TRUE)
+# tinytex::install_tinytex()
+# tinytex::tlmgr_update()
+# tinytex::tlmgr_install("tex-gyre")
+
 # change options
 options(dplyr.summarise.inform = FALSE)
+```
 
-# --------------------------- data wrangling -------------------------------------
+***
+## Erzeugung von Film- & Nutzerprofilen
+#### 1. MovieLense Daten einlesen
+```{r}
 # Daten importieren
 data(MovieLense)
 
 # dataframe erstellen
 movies <- as(MovieLense, "data.frame")
 movies <- movies %>% mutate_if(is.character, as.factor)
-
-# breite version des dataframe erstellen
-# movies_wider <- pivot_wider(
-#   movies,
-#   id_cols = user,
-#   names_from = item,
-#   values_from = rating,
-#   values_fill = NULL,
-# )
 ```
+Hier lesen wir die Daten ein und wandeln sie zur besseren Einsicht in ein Dataframe um.
 
-#### 2.Binäre User-Liked-Items Matrix für alle Nutzer erzeugen.
+#### 2. Binäre User-Liked-Items Matrix für alle Nutzer erzeugen.
 ```{r warning=FALSE}
 movies_binary <- movies %>% mutate(rating = ifelse(rating > 3, 1, 0))
 movies_wider <- pivot_wider(movies_binary, id_cols = user, names_from = item, values_from = rating)
@@ -63,13 +87,13 @@ user_liked_item[1:3, 1:3]
 ```
 Für die Binäre User-Liked Matrix wurde die Grenze für ein gutes Rating bei >4 gesetzt. Also alle Filme, welche mit einem Rating von 3 oder weniger bewertet wurden, sind als schlecht bewertet definiert (also 0), wobei Filme mit Bewertungen von 4 oder 5 als gut bewertet definiert sind (1).
 
-#### 3.Dimension der User-Liked-Items Matrix prüfen und ausgeben.
+#### 3. Dimension der User-Liked-Items Matrix prüfen und ausgeben.
 ```{r}
 print_dim(user_liked_item)
 ```
 In der Binären User-Liked_matrix sind 943 Users und 1664 bewertete Filme vorhanden. Dies entspricht der Dimension der Ursprungsdaten.
 
-#### 4.Movie-Genre Matrix für alle Filme erzeugen.
+#### 4. Movie-Genre Matrix für alle Filme erzeugen.
 ```{r}
 genres <- MovieLenseMeta
 genres <- genres %>% select("title",'unknown':'Western')
@@ -80,13 +104,13 @@ movie_genre_matrix[1:4,1:3]
 ```
 Als nächster Schritt wurde eine 'movie_genre_matrix' erstellt, welche alle Filme mit den mit den dazugehörigen Genres aufgellistet sind. Zu erkennen ist, dass Filme mehreren Genres angehören können, und somit diverse neue Genreprofile mit verschiedenen Genrekombinationen vorhanden sind.
 
-#### 5.Dimension der Movie-Genre Matrix prüfen und ausgeben.
+#### 5. Dimension der Movie-Genre Matrix prüfen und ausgeben.
 ```{r}
 print_dim(movie_genre_matrix)
 ```
 WIe bereits erwähnt sind in dieser Matrix alle 1664 Filme einem oder mehreren von 19 Genres zugeordnet.
 
-#### 6.Anzahl unterschiedlicher Filmprofile bestimmen und visualisieren.
+#### 6. Anzahl unterschiedlicher Filmprofile bestimmen und visualisieren.
 
 ```{r}
 nr_diff_movies <- user_liked_item %*% movie_genre_matrix
@@ -174,20 +198,20 @@ ggplot(movie_genre_profile_df, aes(x = reorder(V1,count), y = count, fill = high
 ```
 In dem MovieLense Datenset sind insgesamt 216  verschiedene Genreprofile von den 1664 Filmen vertreten. Das bedeutet, es sind 216 verschiedene Genrekombinationen aus den 16 gegebenen Genres entstanden. Hier sehen wir also, dass das häufigste profil `Drama` alleine ist. Ganze 370 Filme wurden nur als Dramas kategorisiert.
 
-#### 7.User-Genre-Profil Matrix mit Nutzerprofilen im Genre-Vektorraum erzeugen.
+#### 7. User-Genre-Profil Matrix mit Nutzerprofilen im Genre-Vektorraum erzeugen.
 ```{r}
 user_genre_profil <- user_liked_item %*% movie_genre_matrix
 user_genre_profil[1:5,1:5]
 ```
 In dieser Matrix sind die Anzahl positiv bewerteter Filme pro Genre für jeden User dargestellt.
 
-#### 8.Dimension der User-Genre-Profil Matrix prüfen und ausgeben.
+#### 8. Dimension der User-Genre-Profil Matrix prüfen und ausgeben.
 ```{r}
 print_dim(user_genre_profil)
 ```
 Die Matrix hat für alle 943 Nutzer eine Angabe für die 19 verschiedenen Genres.
 
-#### 9.Anzahl unterschiedlicher Nutzerprofile bestimmen, wenn Stärke der GenreKombination (a) vollständig bzw. (b) nur binär berücksichtigt wird.
+#### 9. Anzahl unterschiedlicher Nutzerprofile bestimmen, wenn Stärke der GenreKombination (a) vollständig bzw. (b) nur binär berücksichtigt wird.
 ```{r}
 user_genre_df <- as.data.frame(user_genre_profil)
 user_genre_diff <- user_genre_df %>% mutate(across(.cols = everything(), .fns = ~ifelse(.x > 0, 1, 0)))
@@ -201,9 +225,7 @@ Bei binärer Betrachtung sind hingegen fast 2/3 der Nutzerprofile identisch.
 
 ***
 ## Ähnlichkeit von Nutzern und Filmen
-#### 1.Cosinus-Ähnlichkeit zwischen User-Genre- und Movie-Genre-Matrix berechnen.
-
-#### Test
+#### 1. Cosinus-Ähnlichkeit zwischen User-Genre- und Movie-Genre-Matrix berechnen.
 ```{r}
 
 A_test.data <- c(1.5,2.5, 1.,0.5)
@@ -332,20 +354,20 @@ In dieser Statistik kann man sehen, dass der User den wenigsten nicht gesehenen 
 
 ***
 ## Top-N Empfehlungen
-#### 1.Matrix für Bewertung aller Filme durch element-weise Multiplikation der Matrix der Cosinus-Ähnlichkeiten von Nutzern und Filmen und “Negativabzug” der User-Items Matrix erzeugen.
+#### 1. Matrix für Bewertung aller Filme durch element-weise Multiplikation der Matrix der Cosinus-Ähnlichkeiten von Nutzern und Filmen und “Negativabzug” der User-Items Matrix erzeugen.
 ```{r}
 rating_matrix <- similarity * movies_masked
 rating_matrix[1:3,1:3]
 ```
 In dieser Matrix sind die Cosinus-Ähnlichkeiten von Nutzern und Filmen zu sehen, wobei diese wenn der Film schon geschaut wurde Null ist.
 
-#### 2.Dimension der Matrix für die Bewertung aller Filme prüfen.
+#### 2. Dimension der Matrix für die Bewertung aller Filme prüfen.
 ```{r}
 print_dim(rating_matrix)
 ```
 Die Dimension dieser Matrix ist natürlich genauso wie die zwei multiplizierten Matrizen 943 User * 1664 Filme.
 
-#### 3.Top-20 Listen pro Nutzer extrahieren.
+#### 3. Top-20 Listen pro Nutzer extrahieren.
 ```{r}
 get_topn_recos <- function(matrix, n, user_id = 'all') {
   if (user_id == 'all') {
@@ -362,14 +384,14 @@ head(recommendation,3)
 ```
 Hier haben wir eine Funktion geschrieben, welche die Top-N Empfehlungen für alle Users zurückgibt, solange keine User-ID angegeben wird. Sonst bekommt man die Empfehlungen nur für die als Liste angegebenen User.
 
-#### 4.Länge der Top-20 Listen pro Nutzer prüfen.
+#### 4. Länge der Top-20 Listen pro Nutzer prüfen.
 ```{r}
 reco_summary <- recommendation %>% group_by(user) %>% summarise(n = n())
 summary(reco_summary)
 ```
 Es fällt auf, dass es für alle User im Datensatz genau 20 Empfehlungen gibt. Bei genauerem betrachten fällt auf, dass es für 943 User 18'860 Empfehlungen geben müsste, es jedoch nur 18'840 Empfehlungen gibt. Dies liegt an dem User, welcher nur negative Bewertungen abgegeben hatte. Für diesen User gibt es momentan also einfach keine Empfehlungen. Man könnte dieses Problem natürlich verhindern indem man die Bewertungen dieses Users einfach anheben würde.
 
-#### 5.Verteilung der minimalen Ähnlichkeit für Top-N Listen für N = 10, 20, 50 und 100 für alle Nutzer visuell vergleichen.
+#### 5. Verteilung der minimalen Ähnlichkeit für Top-N Listen für N = 10, 20, 50 und 100 für alle Nutzer visuell vergleichen.
 ```{r fig.width = 7.5, fig.height = 12}
 plot_min_similarity <- function(df, sub_title) {
   ggplot(df) +
@@ -403,7 +425,7 @@ grid.arrange(p1, p2, p3, p4, ncol = 1, nrow = 4)
 Auf dieser Grafik kann man sehen, dass mit der Anzahl Empfehlungen auch die minimale Ähnlichkeit abnimmt. Bei einer Top-10 List ist die Tiefste Cosine-Similarity ca. 0.65. Bei einer Top-100 List hingegen, ist die minimale Cosine-Similarity unter 0.5.
 
 
-#### 6.Top-20 Empfehlungen für Nutzer “5”, “25”, “50” und “150” visuell evaluieren.
+#### 6. Top-20 Empfehlungen für Nutzer “5”, “25”, “50” und “150” visuell evaluieren.
 ```{r}
 defined_user_lists <- get_topn_recos(rating_matrix, 20, c('5', '25', '50', '150'))
 movie_genre_df <- as.data.frame(movie_genre_profile_matrix)
@@ -415,7 +437,7 @@ defined_user_lists <- merge(defined_user_lists, movie_genre_df, by = 'item')
 #movie_genre_df
 defined_user_lists
 ```
-```{r fig.width = 20, fig.height = 20}
+```{r fig.width = 10, fig.height = 10}
 create_cleveland_plot_1 <- function(df, title) {
   ggplot(df, aes(genre, rating), height = 500, width = 7) +
     scale_color_discrete(labels = c("bestbewertete Filme", "Top-N Empfehlungen")) +
@@ -430,7 +452,7 @@ create_cleveland_plot_1 <- function(df, title) {
       color = element_blank()
     ) +
     theme(
-      text = element_text(size = 20),
+      text = element_text(size = 10),
       legend.position = 'bottom'
     )
 }
@@ -438,8 +460,8 @@ create_cleveland_plot_1(defined_user_lists, 'Top-20 Empfehlungen für Nutzer 5, 
 ```
 
 
-#### 7.Für Nutzer “133” und “555” Profil mit Top-N Empfehlungen für N = 20, 30, 40, 50 analysieren, visualisieren und diskutieren.
+#### 7. Für Nutzer “133” und “555” Profil mit Top-N Empfehlungen für N = 20, 30, 40, 50 analysieren, visualisieren und diskutieren.
 ```{r}
-analyze_topn_recos(rating_matrix[c(133, 555),], c(20, 30, 40, 50))
+# analyze_topn_recos(rating_matrix[c(133, 555),], c(20, 30, 40, 50))
 ```
 TODO: Clevelandplot + diskussion
