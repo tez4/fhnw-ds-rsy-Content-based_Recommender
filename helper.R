@@ -3,6 +3,36 @@ print_dim <- function(matrix) {
   cat('Dimension: (',dim(matrix), ')\n')
 }
 
+analyze_topn_recos <- function(n) {
+  all_recos = data.frame()
+  for (i in n) {
+    recommendation <- get_topn_recos(rating_matrix, i)
+    recommendation <- recommendation %>% group_by(user) %>% summarise(min_rating = min(rating)) %>% mutate(n = i)
+    all_recos <- bind_rows(all_recos, recommendation)
+  }
+  return(all_recos)
+}
+
+plot_min_similarity <- function(n) {
+  recommendation <- analyze_topn_recos(c(n))
+  
+  ggplot(recommendation) +
+    geom_density(aes(x = min_rating), fill = 'steelblue') +
+    scale_y_continuous(expand = c(0,0)) +
+    scale_x_continuous(expand = c(0,0), limits = c(0,1.02)) +
+    labs(
+      title = "Verteilung der minimalen Cosine-Similarity",
+      subtitle = glue("Für Top-{n} Recommendation"),
+      x = "Minimale Cosine-Similarity", 
+      y = "Dichte",
+      fill = element_blank()
+    ) +
+    theme_classic() +
+    theme(
+      text = element_text(size = 12)
+    )
+}
+
 # ------------------- Ähnlichkeit von Nutzern und Filmen ---------------------------
 
 
