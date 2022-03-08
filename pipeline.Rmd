@@ -182,6 +182,7 @@ ggplot(movie_genre_profile_df, aes(x = reorder(V1,count), y = count, fill = high
   )
 ```
 In dem MovieLense Datenset sind insgesamt 216 verschiedene Genreprofile von den beinhalteten 1664 Filmen vertreten. Das bedeutet, es sind 216 verschiedene Genrekombinationen aus den 19 gegebenen 'reinen' Genres entstanden. Hier sehen wir also, dass das häufigste profil `Drama` alleine ist. Ganze 370 Filme wurden ausschliesslich als Drama kategorisiert.
+In der Grafik oben ist ein brauner Balken zu sehen, welcher eine noch grössere Häufigkeit, als `drama` darstellt. dieser representiert jedoch lediglich alle nicht einzeln aufgelisteten Genreprofile aufsummiert.
 
 #### 7. User-Genre-Profil Matrix mit Nutzerprofilen im Genre-Vektorraum erzeugen.
 ```{r}
@@ -418,6 +419,9 @@ p4 <- create_cleveland_plot(rating_matrix, genres, 20, 150)
 
 grid.arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
 ```
+In diesen Grafiken zu sehen sind die Top-20 Empfehlungen für die definierten Nutzer sortiert nach Genre, inklusive den tatsächlichen Bewertungen des Users bezüglich der Genres. 
+Hier ist gut zu erkennen, dass jeweils nur Genres empfohlen werden, welche auch bereits vom User als positiv bewertet sind. Zudem werden auch diese Genres welche am meisten als Positiv bewertet wurden, vom Recommender zu oft und die seltener geschauten Genres auch zu selten empfohlen.
+Wenn man Nutzer 50 genauer betrachtet kann man erkennen, dass nur Filme von seinen beiden Top-Genres vorgeschlagen werden. Ebenfalls interessant ist, dass die empfehlungen für diesen Nutzer gleichmässig verteilt sind, obwohl die Tatsächlichen werte sich relativ stark unterscheiden.
 
 #### 7. Für Nutzer “133” und “555” Profil mit Top-N Empfehlungen für N = 20, 30, 40, 50 analysieren, visualisieren und diskutieren.
 ```{r fig.width = 12, fig.height = 12}
@@ -432,11 +436,14 @@ show_cleveland_grid <- function(user) {
 
 show_cleveland_grid(133)
 ```
-Für diesen Nutzer funktioniert der Recommender fast gar nicht. Er empfielt nur zwei verschiedene Genres: Drama und Comedy. Beide werden von diesem Nutzer sehr häufig geschaut. Jedoch kommt das zweithäuffigste Genre Thriller gar nicht vor. Dies macht die Vorschläge für diesen Nutzer ziemlich eintönig.
+Hier sind die Top-20, -30, -40 & -50 Empfehlungen für den User 133 zu sehen. 
+Für diesen Nutzer Funktioniert der Recommender nicht sehr gut, da nur zwei Genres vorgeschlagen werden, zudem nicht einmal die beiden Top-Genres dieses Users. Die Empfehlungen für diesen User erscheinen somit etwas eintönig.
+
 
 ```{r fig.width = 12, fig.height = 12}
 show_cleveland_grid(555)
 ```
-Hier sieht man Unterschiede zwischen den verschiedenen Top-N Empfehlungen. Allgemein gibt es den Trend, dass die Genres, welche am meisten geschaut werden zu viel empfohlen werden und die kaum geschauten Genres gar nicht vorgeschlagen werden. 
+Erneut die Top-20, -30, -40 & -50 Empfehlungen, jedoch nun für den User 555. 
+Im gegensatz zu Nutzer 133 sieht man hier Unterschiede zwischen den verschiedenen Top-N Empfehlungen. Allgemein gibt es den Trend, dass die Genres, welche am meisten geschaut und als gut bewertet werden zu oft empfohlen sind und die kaum geschauten Genres gar nicht vorgeschlagen werden. 
 
-TODO: Clevelandplot + diskussion
+
