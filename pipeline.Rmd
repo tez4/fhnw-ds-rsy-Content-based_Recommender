@@ -377,16 +377,33 @@ summary(reco_summary)
 Hier fällt auf, dass es für alle User im Datensatz genau 20 Empfehlungen gibt. Bei genauerem betrachten ist zu sehen, dass es für 943 User 18'860 Empfehlungen geben müsste, jedoch nur 18'840 vorhanden sind. Dies liegt an dem User, welcher nur negative Bewertungen abgegeben hatte. Für diesen User gibt es momentan also einfach keine Empfehlungen. Man könnte dieses Problem natürlich verhindern indem man die Bewertungen dieses Users einfach anheben würde.
 
 #### 5. Verteilung der minimalen Ähnlichkeit für Top-N Listen für N = 10, 20, 50 und 100 für alle Nutzer visuell vergleichen.
+```{r}
+analyze_topn_recos <- function(n) {
+  all_recos = data.frame()
+  for (i in n) {
+    recommendation <- get_topn_recos(rating_matrix, i)
+    recommendation <- recommendation %>% group_by(user) %>% summarise(min_rating = min(rating)) %>% mutate(n = i)
+    all_recos <- bind_rows(all_recos, recommendation)
+  }
+  return(all_recos)
+}
+
+sample_n(analyze_topn_recos(c(10,20,50,100)),5)
+```
+Die Funktion `analyze_topn_recos` erstellt einen Datensatz mit dem minimalen Rating pro User für ein bestimmtes N. 
+
 ```{r fig.width = 7.5, fig.height = 12}
-plot_min_similarity <- function(df, sub_title) {
-  ggplot(df) +
-    geom_density(aes(x = rating), fill = 'steelblue') +
+plot_min_similarity <- function(n) {
+  recommendation <- analyze_topn_recos(c(n))
+  
+  ggplot(recommendation) +
+    geom_density(aes(x = min_rating), fill = 'steelblue') +
     scale_y_continuous(expand = c(0,0)) +
     scale_x_continuous(expand = c(0,0), limits = c(0,1.02)) +
     labs(
-      title = "Verteilung der Cosine-Similarity zwischen User und Filmen",
-      subtitle = sub_title,
-      x = "Cosine-Similarity", 
+      title = "Verteilung der minimalen Cosine-Similarity",
+      subtitle = glue("Für Top-{n} Recommendation"),
+      x = "Minimale Cosine-Similarity", 
       y = "Dichte",
       fill = element_blank()
     ) +
@@ -396,18 +413,14 @@ plot_min_similarity <- function(df, sub_title) {
     )
 }
 
-recommendation <- get_topn_recos(rating_matrix, 10)
-p1 <- plot_min_similarity(recommendation, 'Für Top-10 Recommendation')
-recommendation <- get_topn_recos(rating_matrix, 20)
-p2 <- plot_min_similarity(recommendation, 'Für Top-20 Recommendation')
-recommendation <- get_topn_recos(rating_matrix, 50)
-p3 <- plot_min_similarity(recommendation, 'Für Top-50 Recommendation')
-recommendation <- get_topn_recos(rating_matrix, 100)
-p4 <- plot_min_similarity(recommendation, 'Für Top-100 Recommendation')
+p1 <- plot_min_similarity(10)
+p2 <- plot_min_similarity(20)
+p3 <- plot_min_similarity(50)
+p4 <- plot_min_similarity(100)
 
 grid.arrange(p1, p2, p3, p4, ncol = 1, nrow = 4)
 ```
-Auf dieser Grafik kann man sehen, dass mit der Anzahl Empfehlungen auch die minimale Ähnlichkeit abnimmt. Bei einer Top-10 Liste ist die tiefste Cosinus-Ähnlichkeit ca. 0.65. Bei einer Top-100 Liste hingegen, ist die minimale Cosinus-Ähnlichkeit unter 0.5.
+Auf dieser Grafik kann man sehen, dass mit der Anzahl Empfehlungen auch die minimale Ähnlichkeit abnimmt. Bei einer Top-10 Liste ist allgemein die minimale Cosinus-Ähnlichkeit recht hoh und liegt meist zwischen 0.65 und 0.85. Bei einer Top-100 Liste hingegen, ist die minimale Cosinus-Ähnlichkeit meist unter 0.75.
 
 #### 6. Top-20 Empfehlungen für Nutzer “5”, “25”, “50” und “150” visuell evaluieren.
 ```{r fig.width = 12, fig.height = 12}
