@@ -2,7 +2,7 @@
 title: "Recommender Systems"
 subtitle: "Mini-Challenge 2 - Content-based Recommender"
 author: "Pascal Berger, Lea Bütler & Joël Grosjean"
-date: "10. Juni 2022"
+date: "07. Juni 2022"
 output:
   html_notebook:
     toc: true
